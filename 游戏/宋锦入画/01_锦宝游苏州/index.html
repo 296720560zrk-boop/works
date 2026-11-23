@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0e0c09">
+<!-- 加到 iPad 主屏幕后全屏打开，图标下面显示的名字 -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="锦宝">
+<title>锦宝游苏州</title>
+<link rel="stylesheet" href="chuanyue.css?v=3c8d9f1a">
+</head>
+<body>
+
+<!-- ================= 生成画面 ================= -->
+<div id="stageWrap">
+  <video id="stage" playsinline autoplay></video>
+  <div id="sdkView"></div>
+  <div id="veil2"></div>
+  <div id="juan"></div>
+</div>
+
+<!-- ================= 顶部状态 ================= -->
+<div id="hud">
+  <div class="brand">
+    <span class="bn">锦宝游苏州</span>
+    <span class="bd">宋锦 · 苏州</span>
+  </div>
+  <div class="stat">
+    <i id="dot"></i>
+    <span id="statText">未开始</span>
+    <span id="statMeta"></span>
+  </div>
+  <div class="cost" id="hudCost" title="按 ¥20 / 小时估算">
+    <b id="costTime">00:00</b>
+    <em id="costMoney">¥0.00</em>
+  </div>
+</div>
+
+<!-- ================= 常驻返回按钮 ================= -->
+<button id="btnBack" title="返回地图" aria-label="返回地图">
+  <span class="ic">←</span><span class="lb">返回地图</span>
+</button>
+
+<!-- ================= 场景字幕 / 任务卡 ================= -->
+<div id="sceneTag"></div>
+<div id="introCard">
+  <div class="ic-place" id="introPlace"></div>
+  <div class="intro-line">
+    <span class="q">「</span><span class="intro-text" id="introText"></span><span class="q">」</span>
+  </div>
+</div>
+<div id="taskCard">
+  <div class="tk-label">轮到你啦 · 点画面换一条</div>
+  <div class="tk-text"></div>
+</div>
+
+<!-- ================= 底部控制坞 ================= -->
+<div id="dock">
+  <div class="scenes" id="scenes"></div>
+
+  <div class="ops">
+    <button class="op" id="btnGo" title="开始（空格）">
+      <span class="ic">▶</span><span class="lb">开始穿越</span>
+    </button>
+    <button class="op rec" id="btnRec" title="录制（空格）" disabled>
+      <span class="ic"><i class="rdot"></i></span><span class="lb">录制</span>
+    </button>
+    <button class="op" id="btnShot" title="拍一幅宋画（P）" disabled>
+      <span class="ic">◉</span><span class="lb">拍照</span>
+    </button>
+    <button class="op" id="btnFull" title="全屏（F）">
+      <span class="ic">⛶</span><span class="lb">全屏</span>
+    </button>
+    <button class="op" id="btnCfg" title="设置">
+      <span class="ic">⚙</span><span class="lb">设置</span>
+    </button>
+  </div>
+</div>
+
+<!-- ================= 江南地图（入口） ================= -->
+<div id="gate">
+  <div id="gStage">
+    <div class="gWorld" id="gWorld">
+      <img class="gMap" src="assets/map/jiangnan.png" alt="">
+      <div class="gShade"></div>
+      <div class="gPins" id="gPins"></div>
+    </div>
+  </div>
+
+  <div class="gHead">
+    <div class="gTitle">锦 宝 游 苏 州</div>
+    <div class="gSub">点一个地方，我们一起去看看</div>
+  </div>
+
+  <div class="gFoot">
+    <button class="gLink" id="btnGateCfg">设 置</button>
+    <span class="gNote" id="gateNote">第一次使用，请先在设置里填 API Key</span>
+  </div>
+</div>
+
+<!-- ================= 穿越动画 ================= -->
+<div id="tunnel">
+  <div class="tuSky"></div>
+  <div class="tuSpin"></div>
+  <div class="tuClouds" id="tuClouds"></div>
+  <div class="tuRings"><i></i><i></i><i></i></div>
+  <div class="tuCore"></div>
+  <div class="tuTx"><b>锦宝出发咯</b><em id="tuWhere"></em></div>
+</div>
+
+<!-- ================= 设置面板 ================= -->
+<div id="setup">
+  <div class="panel">
+    <div class="pHead">
+      <h2>设置</h2>
+      <button class="x" id="btnCloseCfg">×</button>
+    </div>
+
+    <div class="pBody">
+      <div class="col">
+        <label class="fld">
+          <span class="fl">Xmax API Key</span>
+          <input id="inKey" type="password" placeholder="从 platform.xmaxai.com 获取" autocomplete="off">
+          <span class="fh">只保存在本机浏览器，不上传任何地方。</span>
+        </label>
+
+        <div class="row2">
+          <label class="fld">
+            <span class="fl">服务环境</span>
+            <select id="inEnv">
+              <option value="china">中国站（推荐）</option>
+              <option value="global">国际站</option>
+            </select>
+          </label>
+          <label class="fld">
+            <span class="fl">模型</span>
+            <select id="inModel">
+              <option value="x2.1">X2.1（1080p）</option>
+              <option value="x2.1-flash">X2.1 Flash（省）</option>
+              <option value="x2.0">X2.0</option>
+            </select>
+          </label>
+          <label class="fld">
+            <span class="fl">镜头</span>
+            <select id="inRatio">
+              <option value="land">横屏（大屏自带）</option>
+              <option value="port">竖屏（平板）</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="fld">
+          <span class="fl">孩子是</span>
+          <div class="outfits" id="outfits">
+            <button class="of on" data-gender="girl"><img src="assets/outfit/shuchang_girl.webp?v=028fe184" alt=""><span>女童</span></button>
+            <button class="of" data-gender="boy"><img src="assets/outfit/shuchang_boy.webp?v=028fe184" alt=""><span>男童</span></button>
+          </div>
+          <span class="fh">进哪个场景，就自动穿那场景该穿的衣裳（每个场景男女童各一套，随场景变色换花纹）。</span>
+        </div>
+
+        <div class="fld">
+          <span class="fh">脸会自动优化成一个「符合孩子脸型的卡通脸」，保留本人的脸型轮廓和发型，不会换成别的动漫角色。</span>
+        </div>
+
+        <div class="fld">
+          <span class="fh">录音会带上孩子的声音，但不会从平板外放，避免回声。</span>
+        </div>
+      </div>
+
+      <div class="col">
+        <label class="fld">
+          <span class="fl">台词提示（可选：留空则用每个场景自带的动作提示）</span>
+          <textarea id="inLines" rows="4" placeholder="留空 = 每个场景自动给 3 条（如评弹书场：端起茶碗抿一口）&#10;要自己写就每行一句，所有场景通用&#10;点画面或按 T 换下一句"></textarea>
+        </label>
+
+        <label class="fld">
+          <span class="fl">画面补充描述（可选）</span>
+          <textarea id="inAppend" rows="3" placeholder="效果不理想时补一句：&#10;两个孩子都换成宋装&#10;衣服颜色再素一些，接近绢画"></textarea>
+          <span class="fh">换风格、调颜色、强调“两个人”，写在这里。</span>
+        </label>
+
+        <div class="diag">
+          <div class="dgRow"><span>会话</span><b id="dgSess">—</b></div>
+          <div class="dgRow"><span>状态</span><b id="dgState">—</b></div>
+          <div class="dgRow"><span>画面</span><b id="dgFrame">—</b></div>
+          <div class="dgRow"><span>已用</span><b id="dgTime">—</b></div>
+          <div class="dgRow"><span>余额</span><b id="dgCredit">—</b></div>
+          <button class="dgBtn" id="btnCredit">查余额</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="pFoot">
+      <button class="btnGhost" id="btnReset">清空 Key</button>
+      <button class="btnMain" id="btnSave">保存并关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= 录制计时 ================= -->
+<div id="recBar">
+  <i class="rdot"></i><span id="recTime">00:00</span>
+</div>
+
+<script type="module" src="chuanyue.js?v=8f4c2a6e"></script>
+</body>
+</html>

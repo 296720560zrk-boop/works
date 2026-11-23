@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#15110c">
+<title>宋锦小灵兽</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="loom" id="loom">
+
+  <!-- 画面：铺满整屏 -->
+  <div class="stage" id="heart">
+    <video id="cam" playsinline muted autoplay></video>
+    <canvas id="fx"></canvas>
+  </div>
+
+  <!-- 上卷轴 -->
+  <div class="rod rod-t" aria-hidden="true">
+    <i class="knob l"></i><i class="knob r"></i>
+    <i class="edge"></i>
+  </div>
+  <!-- 下卷轴 -->
+  <div class="rod rod-b" aria-hidden="true">
+    <i class="knob l"></i><i class="knob r"></i>
+    <i class="edge"></i>
+  </div>
+
+  <!-- 题签 -->
+  <div class="slip-title" aria-hidden="true">
+    <span>宋锦小灵兽</span>
+    <i class="seal">锦</i>
+  </div>
+
+  <!-- 左侧交互 -->
+  <div class="side side-l">
+    <button class="orb" id="btnClear" type="button"><span>收</span></button>
+    <button class="orb" id="btnFull" type="button"><span>全</span></button>
+  </div>
+
+  <!-- 右侧交互 -->
+  <div class="side side-r">
+    <button class="orb shot" id="btnShot" type="button"><span>拍</span></button>
+    <button class="orb" id="btnMute" type="button"><span>声</span></button>
+  </div>
+
+  <!-- 底部纹样滑条 -->
+  <div class="tray" id="tray">
+    <div class="tray-fade l"></div>
+    <div class="tray-fade r"></div>
+    <nav class="strip" id="railL" aria-label="纹样选择"></nav>
+  </div>
+
+  <!-- 纹样寓意说明：小灵兽出来后浮现，几秒后淡去 -->
+  <div class="lore" id="lore" hidden>
+    <p class="lore-name" id="loreName"></p>
+    <p class="lore-text" id="loreText"></p>
+    <button class="lore-replay" id="loreReplay" type="button">🔊 听一听</button>
+  </div>
+
+  <!-- 用量条：只显示「使用时长」，点开可锁课时 / 导出记录。
+       计费相关的「额度/点数/AI重生」已移除 —— 本游戏召唤免费、无计费。 -->
+  <div class="meter" id="meter">
+    <button class="meter-bar" id="meterBar" type="button">
+      <i class="dot"></i>
+      <b id="mTime">00:00</b><span class="lbl">本节时长</span>
+    </button>
+    <div class="meter-panel" id="meterPanel" hidden>
+      <div class="row"><span>本节时长</span><b id="pTime">00:00</b></div>
+      <div class="acts">
+        <button id="btnLock" type="button">课时锁</button>
+        <button id="btnCsv" type="button">导出记录</button>
+      </div>
+      <p class="note">召唤小兽免费，不计额度</p>
+    </div>
+  </div>
+
+  <!-- 引导 -->
+  <div class="hint" id="hint">
+    <svg class="hint-hand" viewBox="0 0 200 230" aria-hidden="true">
+      <!-- 掌心（圆角矩形） -->
+      <rect x="62" y="120" width="76" height="96" rx="28" ry="28" />
+      <!-- 四根手指（食指/中指/无名指/小指），中指最长、两侧渐短 -->
+      <rect x="70" y="36" width="18" height="88" rx="9" ry="9" />
+      <rect x="91" y="30" width="18" height="94" rx="9" ry="9" />
+      <rect x="112" y="38" width="18" height="86" rx="9" ry="9" />
+      <rect x="132" y="56" width="16" height="68" rx="8" ry="8" />
+      <!-- 拇指（斜向左下伸出） -->
+      <rect x="34" y="104" width="20" height="52" rx="10" ry="10" transform="rotate(-32 44 130)" />
+    </svg>
+    <p>把手掌张开</p>
+    <p class="hint-sub">对准屏幕中央</p>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <!-- 手感调试面板：只在地址带 ?tune=1 时出现，正式使用不显示 -->
+  <div class="tune" id="tune" hidden>
+    <div class="tune-head">
+      <b>手感</b>
+      <button class="tune-x" id="tuneClose" type="button" title="收起">×</button>
+    </div>
+    <div class="tune-body" id="tuneBody"></div>
+    <div class="tune-foot">
+      <button class="tune-btn" id="tuneCopy" type="button">复制参数</button>
+      <button class="tune-btn ghost" id="tuneReset" type="button">复位</button>
+    </div>
+  </div>
+  <button class="tune-open" id="tuneOpen" type="button" hidden>调</button>
+
+  <!-- 启动遮罩 -->
+  <div class="veil" id="veil">
+    <div class="veil-inner">
+      <div class="veil-title">宋锦小灵兽</div>
+      <p class="veil-note" id="veilNote">小灵兽正在赶来…</p>
+      <div class="veil-loading" id="veilLoading"><i></i><i></i><i></i></div>
+      <button class="btn primary big" id="btnStart" hidden>开 始</button>
+      <p class="veil-tip">点「开始」，张开手掌，小兽就会落到你手上</p>
+    </div>
+  </div>
+
+</div>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>

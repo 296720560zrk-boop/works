@@ -1,0 +1,3305 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>锦衣小裁缝 · 小手一裁，宋锦上身</title>
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./icons/icon-192.png">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%;overflow:hidden;background:#000;
+    font-family:"Kaiti SC","STKaiti","KaiTi","Yuanti SC","PingFang SC","Microsoft YaHei",sans-serif;
+    -webkit-user-select:none;user-select:none;overscroll-behavior:none}
+  #app{position:fixed;inset:0;overflow:hidden;background:#000}
+
+  /* ========== 全屏摄像头 ========== */
+  #cam{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+    transform:scaleX(-1);transform-origin:center;background:#000}
+  #cam.mirror-off{transform:scaleX(1)}
+  /* 关键：object-fit:cover 只裁切、绝不拉伸，保证身体比例不变形 */
+  #cloth{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;
+    z-index:5}
+
+  /* ========== 顶部 ========== */
+  #top{position:absolute;top:0;left:0;right:0;z-index:20;
+    padding:calc(14px + env(safe-area-inset-top)) 16px 14px;
+    display:flex;align-items:center;gap:10px;
+    background:linear-gradient(#000000a8,#00000000)}
+  #brand{flex:1;min-width:0;color:#fff;display:flex;align-items:center;gap:8px;
+    text-shadow:0 1px 8px #0008}
+  #brandWrap{display:flex;flex-direction:column;gap:1px;min-width:0}
+  #brandTxt{font-size:17px;font-weight:700;letter-spacing:2px;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #slogan{font-size:11px;font-weight:600;letter-spacing:1px;color:#f7d79a;
+    font-family:"Kaiti SC","STKaiti","KaiTi",serif;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:.92}
+  #brand i{width:7px;height:7px;border-radius:50%;background:#4ade80;flex-shrink:0;
+    font-style:normal;box-shadow:0 0 8px #4ade80}
+  #brand i.off{background:#fbbf24;box-shadow:0 0 8px #fbbf24}
+
+  .rbtn{width:44px;height:44px;border-radius:15px;border:none;
+    background:#ffffff22;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    color:#fff;display:grid;place-items:center;cursor:pointer;
+    transition:transform .14s,background .2s;font-size:20px;flex-shrink:0}
+  .rbtn:active{transform:scale(.88);background:#ffffff3d}
+  .rbtn.hide{display:none}
+
+  /* ========== 底部弹出面板（设置 / 选图 / 额度） ========== */
+  .sheet{position:absolute;inset:0;z-index:120;display:none;
+    align-items:flex-end;justify-content:center;overflow:auto;
+    background:#000000e8;backdrop-filter:blur(3px)}
+  .sheet.on{display:flex}
+  .sheet .panel{width:100%;max-width:520px;box-sizing:border-box;
+    max-height:92vh;overflow:auto;
+    background:#1b1815;border-radius:24px 24px 0 0;
+    padding:22px 20px calc(30px + env(safe-area-inset-bottom));
+    border-top:1px solid #ffffff1f;
+    animation:up .26s ease-out}
+  @keyframes up{from{transform:translateY(28px);opacity:.6}to{transform:none;opacity:1}}
+  .sheet h3{margin:0 0 8px;font-size:16.5px;color:#fff;
+    display:flex;align-items:center;gap:8px}
+  .sheet .tag{font-size:11px;font-weight:700;color:#fbbf24;
+    background:#fbbf2426;padding:3px 8px;border-radius:999px}
+  .sheet .note{margin:0 0 14px;font-size:13px;line-height:1.6;color:#ffffffb3}
+  .sheet input{width:100%;box-sizing:border-box;padding:14px 15px;border-radius:14px;
+    border:1px solid #ffffff2e;background:#ffffff12;color:#fff;font-size:15px;
+    font-family:inherit;outline:none}
+  .sheet input:focus{border-color:#ff9a45;background:#ffffff1c}
+  .sheet .keyRow{position:relative}
+  .sheet .keyRow input{padding-right:58px}
+  .sheet .eye{position:absolute;right:7px;top:50%;transform:translateY(-50%);
+    width:44px;height:36px;flex:none;padding:0;border-radius:10px;
+    background:#ffffff1f;color:#ffffffb3;font-size:12px;font-weight:700}
+  .sheet .eye:active{transform:translateY(-50%) scale(.94);background:#ffffff33}
+  /* 设备模式开关：iPad 上老师一键切到本机演示 */
+  .sheet .modeRow{margin-top:14px;display:flex;align-items:center;gap:12px;
+    padding:11px 13px;border-radius:14px;background:#ffffff0f;
+    box-shadow:inset 0 0 0 1px #ffffff14}
+  .sheet .modeRow b{display:block;font-size:12.5px;color:#ffffffd9;font-weight:700}
+  .sheet .modeRow i{display:block;margin-top:3px;font-style:normal;
+    font-size:11px;line-height:1.5;color:#ffffff85}
+  .sheet .modeRow button{flex:0 0 auto;min-width:58px;padding:9px 12px;border-radius:11px;
+    border:none;font-size:12px;font-weight:800;font-family:inherit;cursor:pointer;
+    background:#ffffff1f;color:#ffffffb3}
+  .sheet .modeRow button.on{background:#ff9a45;color:#20130a}
+  .sheet .tip{margin:9px 2px 0;font-size:11.5px;line-height:1.55;color:#ffffff9c}
+  .sheet .tip.small{margin-top:14px}
+  .sheet .rows{display:flex;gap:10px;margin-top:16px}
+  .sheet button{flex:1;padding:14px;border-radius:14px;border:none;
+    font-size:15px;font-weight:700;font-family:inherit;cursor:pointer}
+  .sheet .ghost{flex:0 0 30%;background:#ffffff1a;color:#ffffffd9}
+  .sheet .primary{background:linear-gradient(135deg,#ff9a45,#ff7a45);color:#fff}
+  .sheet .ghost.danger{background:#ef44441a;color:#ffb4b4;box-shadow:inset 0 0 0 1px #ef444440}
+  .sheet button:active{transform:scale(.97)}
+
+  /* 摄像头失败 / 模型连不上：居中卡片，比底部抽屉更像「需要处理的事」 */
+  #camErr,#fail,#edgeTip{align-items:center;background:#000000f2}
+  #camErr .panel,#fail .panel,#edgeTip .panel{max-width:430px;border-radius:22px;border:1px solid #ffffff1f;
+    margin:0 18px;animation:pop .24s ease-out}
+  #edgeTip .url{margin:10px 2px 0;padding:10px 12px;border-radius:11px;background:#ffffff0f;
+    font-size:11px;line-height:1.5;color:#ffffff8a;word-break:break-all}
+  #fail .stage{margin:11px 2px 0;padding:9px 11px;border-radius:11px;
+    background:#ffffff0f;font-size:11.5px;line-height:1.6;color:#ffffff9c}
+  #fail .stage b{color:#ffc48a;font-weight:700}
+  @keyframes pop{from{transform:scale(.96);opacity:.5}to{transform:none;opacity:1}}
+
+  /* 体验结果留存（结束时自动截一张，留给孩子看） */
+  #result{position:absolute;inset:0;z-index:150;display:none;
+    flex-direction:column;align-items:center;justify-content:center;gap:14px;
+    padding:calc(20px + env(safe-area-inset-top)) 18px calc(18px + env(safe-area-inset-bottom));
+    background:#0b0908f2;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+  #result.on{display:flex}
+  /* 结果页开着时把顶栏抬到它上面：额度/翻转仍然点得到，不用先关掉 */
+  #app.resultOn #top{z-index:160}
+  #app.resultOn .sheet{z-index:170}   /* 点开的额度/设置面板要盖住结果页 */
+  #result .rHead{text-align:center;color:#fff}
+  #result .rHead b{font-size:17px;display:block;margin-bottom:4px}
+  #result .rHead span{font-size:12px;color:#ffffff8a}
+  #result img{max-width:100%;max-height:56vh;border-radius:16px;
+    box-shadow:0 14px 44px #000a;object-fit:contain;background:#000}
+  #result .rRows{width:min(100%,430px);display:flex;flex-direction:column;gap:9px}
+  #result button{width:100%;padding:14px;border:none;border-radius:14px;
+    font-size:15px;font-weight:800;font-family:inherit;cursor:pointer;color:#fff}
+  #result .primary{background:linear-gradient(135deg,#ff9a45,#ff7a45);
+    box-shadow:0 6px 18px #f2712c55}
+  #result button:active{transform:scale(.97)}
+  #result .vbtn{background:#ffffff17;color:#fff;box-shadow:inset 0 0 0 1px #ffffff2e;
+    font-size:14px;font-weight:700;padding:12px}
+  #result .vbtn:disabled{opacity:.55}
+  #result .pair{display:flex;gap:8px}
+  #result .pair .ghost{padding:12px 4px;font-size:13px;white-space:nowrap}
+  #result .ghost{background:#ffffff1a;color:#ffffffd9;padding:12px;font-size:14px}
+  /* 结果页视频预览：录好了就直接看，确认好看再保存 */
+  #result img.hide{display:none}
+  #result .vbox{display:none;position:relative;width:min(100%,430px)}
+  #result .vbox.on{display:block;animation:pop .3s ease-out}
+  #result .vbox video{display:block;width:100%;max-height:56vh;border-radius:16px;
+    background:#000;box-shadow:0 14px 44px #000a}
+  #result .vbox span{position:absolute;left:10px;top:10px;
+    font-size:10.5px;font-weight:700;letter-spacing:.3px;color:#fff;
+    background:#00000096;padding:4px 10px;border-radius:99px;
+    backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+
+  /* 录制中角标 */
+  #recBadge{position:absolute;right:14px;top:calc(76px + env(safe-area-inset-top));
+    z-index:30;display:none;align-items:center;gap:6px;
+    padding:5px 10px 5px 9px;border-radius:99px;
+    background:#000000a6;border:1px solid #ffffff26;
+    backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+    color:#fff;font-size:11px;font-weight:700;font-variant-numeric:tabular-nums;
+    pointer-events:none}
+  #recBadge.on{display:flex}
+  #recBadge i{width:7px;height:7px;border-radius:50%;background:#ff4d4d;
+    animation:recPulse 1.5s ease-out infinite}
+  @keyframes recPulse{0%{box-shadow:0 0 0 0 #ff4d4db3}70%{box-shadow:0 0 0 7px #ff4d4d00}100%{box-shadow:0 0 0 0 #ff4d4d00}}
+
+  /* 隐私说明列表 */
+  .sheet ul.plist{margin:0 0 4px;padding-left:19px;color:#ffffffc4;
+    font-size:13px;line-height:1.72}
+  .sheet ul.plist li{margin-bottom:7px}
+  .sheet ul.plist b{color:#fff;font-weight:800}
+
+  /* ========== 选图面板：范例一字排 + 自己的画 ========== */
+  /* 面板做真玻璃：背后是摄像头画面，模糊后透上来才有质感 */
+  #pick{background:linear-gradient(#000000b8 42%,#000000e6)}
+  #pick .panel{max-width:660px;
+    background:linear-gradient(178deg,#332a22e8 0%,#1b1613f5 48%,#131010fa 100%);
+    backdrop-filter:blur(26px) saturate(150%);-webkit-backdrop-filter:blur(26px) saturate(150%);
+    border-top:1px solid #ffffff33;
+    box-shadow:0 -20px 64px #000000b3, inset 0 1px 0 #ffffff24;
+    padding-top:18px}
+
+  /* 范例横条：可滑动，右边缘用遮罩淡出，提示还有更多 */
+  #pick .looksWrap{position:relative;margin:2px 0 0}
+  #pick .looksHead{display:flex;align-items:baseline;gap:8px;margin:0 0 9px}
+  #pick .looksHead b{font-size:13px;color:#fff;font-weight:800;letter-spacing:.4px}
+  #pick .looksHead em{font-style:normal;font-size:11px;color:#ffb066;font-weight:700}
+  #pick .looksHead button{margin-left:auto;flex:0 0 auto;padding:4px 11px;border-radius:999px;
+    border:1px solid #ffffff2e;background:#ffffff14;color:#ffffffc9;
+    font-size:11px;font-weight:700;font-family:inherit;cursor:pointer}
+  #pick .looksHead button:active{transform:scale(.93)}
+  /* 全部款式：切成网格，一眼看全 10 件，不用再横滑 */
+  #pick .looks.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));
+    gap:10px;overflow-x:visible;scroll-snap-type:none;padding-bottom:4px;
+    -webkit-mask-image:none;mask-image:none}
+  #pick .looks.grid::after{display:none}
+  #pick .looks.grid .look{width:auto}
+  #pick .looks{display:flex;gap:10px;overflow-x:auto;overflow-y:hidden;
+    scroll-snap-type:x mandatory;
+    -webkit-overflow-scrolling:touch;
+    padding:2px 0 14px;margin:0;scrollbar-width:none;
+    -webkit-mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 26px),#0000 100%);
+    mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 26px),#0000 100%)}
+  /* 末尾留白：滚到最后一件时它不会被右边缘的淡出吃掉 */
+  #pick .looks::after{content:'';flex:0 0 34px}
+  #pick .looks::-webkit-scrollbar{display:none}
+  #pick .look{flex:0 0 auto;width:102px;scroll-snap-align:start;
+    display:flex;flex-direction:column;padding:0;overflow:hidden;
+    border-radius:16px;cursor:pointer;text-align:center;color:#fff;
+    background:linear-gradient(165deg,#ffffff1f,#ffffff06);
+    border:1px solid #ffffff29;
+    box-shadow:0 6px 18px #00000059, inset 0 1px 0 #ffffff33;
+    transition:transform .16s,border-color .2s,box-shadow .2s}
+  #pick .look .shot{position:relative;height:130px;display:block;
+    background:radial-gradient(120% 78% at 50% 0%,#ffffff17,#ffffff02)}
+  #pick .look .shot img{width:100%;height:100%;object-fit:contain;padding:6px 5px 0;
+    -webkit-user-drag:none}
+  #pick .look .cap{display:block;padding:6px 5px 8px;line-height:1.22}
+  #pick .look .cap b{display:block;font-size:10.5px;font-weight:800;letter-spacing:.1px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #pick .look .cap i{display:block;font-style:normal;font-size:9px;color:#ffffff73;margin-top:2px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #pick .look:active{transform:scale(.95)}
+  @media (hover:hover){
+    #pick .look:hover{transform:translateY(-3px);border-color:#ffffff4d;box-shadow:0 12px 26px #00000073, inset 0 1px 0 #ffffff40}
+  }
+  /* 选中的那件：橙色描边 + 右上角小勾 */
+  #pick .look.on{border-color:#ff9a45;
+    box-shadow:0 0 0 1px #ff9a45,0 8px 24px #f2712c66, inset 0 1px 0 #ffffff40}
+  #pick .look.on .shot::after{content:'✓';position:absolute;top:5px;right:5px;
+    width:18px;height:18px;border-radius:50%;display:grid;place-items:center;
+    font-size:11px;font-weight:800;color:#20130a;
+    background:linear-gradient(135deg,#ffc98a,#ff9a45);box-shadow:0 2px 8px #00000059}
+  /* 正在准备某一件 */
+  #pick .look.wait{opacity:.55;pointer-events:none}
+  #pick .look.wait .shot::after{content:'';position:absolute;top:50%;left:50%;
+    width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;
+    border:2.5px solid #ffffff3d;border-top-color:#ff9a45;animation:sp .8s linear infinite}
+
+  /* 分隔：范例 / 自己的画 */
+  #pick .or{display:flex;align-items:center;gap:10px;margin:4px 0 11px}
+  #pick .or i{flex:1;height:1px;background:linear-gradient(90deg,#ffffff00,#ffffff2b)}
+  #pick .or i.r{background:linear-gradient(90deg,#ffffff2b,#ffffff00)}
+  #pick .or span{font-size:11px;color:#ffffff8c;letter-spacing:.2px;white-space:nowrap}
+
+  /* 功能按钮：留着，而且要比范例更抢眼 —— 橙色图标 + 暖调玻璃底 */
+  #pick .pickGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  #pick .pickCard{display:flex;align-items:center;gap:10px;padding:11px 12px;
+    border-radius:16px;cursor:pointer;text-align:left;color:#fff;
+    background:linear-gradient(150deg,#ffb06626,#ffffff08 62%);
+    border:1px solid #ff9a4547;
+    box-shadow:0 6px 18px #0000004d, inset 0 1px 0 #ffffff2b;
+    transition:transform .14s,box-shadow .2s,border-color .2s}
+  #pick .pickCard:active{transform:scale(.96);border-color:#ff9a4580}
+  #pick .pickCard .ico{flex:0 0 auto;width:38px;height:38px;border-radius:12px;
+    display:grid;place-items:center;font-size:18px;line-height:1;
+    background:linear-gradient(135deg,#ff9a45,#ef6f2b);
+    box-shadow:0 4px 12px #f2712c5c, inset 0 1px 0 #ffffff59}
+  #pick .pickCard .tx{min-width:0;flex:1;display:block}
+  #pick .pickCard b{display:block;font-size:13.5px;font-weight:800;letter-spacing:.2px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #pick .pickCard i{display:block;font-style:normal;font-size:10px;line-height:1.4;
+    color:#ffffff8a;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+  #pick .wide,#fail .wide,#edgeTip .wide{width:100%;margin-top:14px;background:#ffffff1a;color:#ffffffd9;
+    padding:13px;border-radius:14px;font-size:14.5px;font-weight:700}
+  #pick .wide:active,#fail .wide:active,#edgeTip .wide:active{transform:scale(.98)}
+
+  /* 平板 / 电脑：不做贴到底部的长条，浮起成一块居中玻璃卡 */
+  @media (min-width:700px) and (min-height:640px){
+    #pick{align-items:center}
+    #pick .panel{border-radius:26px;max-height:86vh;
+      border:1px solid #ffffff2b;
+      box-shadow:0 26px 80px #000000cc, inset 0 1px 0 #ffffff2b;
+      padding-bottom:24px}
+  }
+
+  /* 倒计时胶囊 */
+  #timer{display:flex;align-items:center;gap:6px;flex-shrink:0;
+    height:36px;padding:0 13px 0 11px;border-radius:999px;border:none;cursor:pointer;
+    background:#ffffff14;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    color:#ffffffd9;font-size:14px;font-weight:800;font-variant-numeric:tabular-nums;
+    transition:background .2s,transform .14s}
+  #timer.on{background:#ffffff22;color:#fff}
+  #timer:active{transform:scale(.94)}
+  #timer.low{background:#ef4444e0;box-shadow:0 0 0 3px #ef44443d;animation:pulse 1s infinite}
+  @keyframes pulse{50%{opacity:.62}}
+  #timer .ring{width:15px;height:15px;border-radius:50%;flex-shrink:0;
+    border:2.5px solid #ffffff45;border-top-color:#fff;
+    animation:sp .9s linear infinite}
+  #timer.low .ring{animation:none;border-color:#fff;border-top-color:#fff}
+
+  /* 60 秒确认：必须盖在额度面板上面，否则「就用 60 秒」点不到 */
+  #durAsk{z-index:185}
+
+  /* 额度面板：时长档位 */
+  #quota .durHead{display:flex;align-items:baseline;gap:8px;margin:14px 0 8px}
+  #quota .durHead b{font-size:13px;color:#fff;font-weight:800;letter-spacing:.3px}
+  #quota .durHead span{font-size:11px;color:#ffffff7a}
+  #quota .durRow{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  #quota .durRow button{height:42px;border-radius:13px;cursor:pointer;font-family:inherit;
+    font-size:13.5px;font-weight:700;color:#ffffffb8;
+    background:#ffffff10;border:1px solid #ffffff1f;
+    transition:transform .12s,background .2s,color .2s,border-color .2s}
+  #quota .durRow button:active{transform:scale(.95)}
+  #quota .durRow button.on{color:#fff;border-color:#ff9a4580;
+    background:linear-gradient(135deg,#ff9a4536,#f2712c26);
+    box-shadow:inset 0 0 0 1px #ff9a4533}
+
+  /* 额度面板 */
+  #quota .big{display:flex;align-items:baseline;gap:8px;margin:6px 0 2px;color:#fff}
+  #quota .big b{font-size:40px;font-weight:800;font-variant-numeric:tabular-nums;
+    line-height:1;background:linear-gradient(135deg,#ffb066,#ff7a45);
+    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  #quota .big span{font-size:13px;color:#ffffff8c}
+  #quota .bar{height:6px;border-radius:99px;background:#ffffff1f;overflow:hidden;margin:12px 0 4px}
+  #quota .bar i{display:block;height:100%;border-radius:99px;
+    background:linear-gradient(90deg,#ffb066,#ff7a45);transition:width .4s}
+  #quota .stat{display:flex;gap:10px;margin:16px 0 0}
+  #quota .stat div{flex:1;background:#ffffff0f;border:1px solid #ffffff1a;
+    border-radius:14px;padding:12px 10px;text-align:center}
+  #quota .stat b{display:block;font-size:19px;color:#fff;font-variant-numeric:tabular-nums}
+  #quota .stat span{font-size:11px;color:#ffffff99}
+
+  /* ========== 底部悬浮控制 ========== */
+  #dock{position:absolute;left:50%;transform:translateX(-50%);
+    width:min(calc(100% - 24px),620px);
+    bottom:calc(14px + env(safe-area-inset-bottom));z-index:20;
+    display:flex;align-items:center;gap:10px;
+    padding:10px;border-radius:22px;
+    background:#00000073;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+    border:1px solid #ffffff1f;
+    box-shadow:0 8px 32px #0006}
+
+  #thumbWrap{width:56px;height:64px;border-radius:14px;flex-shrink:0;
+    background:#ffffff14;display:none;place-items:center;overflow:hidden;
+    border:1px solid #ffffff26}
+  #thumbWrap.on{display:grid}
+  #thumb{max-width:100%;max-height:100%;object-fit:contain;padding:3px}
+
+  #dockMain{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+  #dockTip{font-size:11.5px;color:#ffffff9e;line-height:1.35;
+    padding-left:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+  #cta{height:52px;border:none;border-radius:22px;cursor:pointer;width:100%;
+    font-size:18px;font-weight:700;letter-spacing:.18em;color:#fff;
+    background:linear-gradient(135deg,#ff9a45,#f2712c);
+    box-shadow:0 5px 16px #f2712c55;
+    display:flex;align-items:center;justify-content:center;gap:7px;
+    transition:transform .12s,box-shadow .2s}
+  #cta:active{transform:scale(.97)}
+  #cta.stop{background:linear-gradient(135deg,#5d6b7a,#3d4752);box-shadow:0 5px 16px #3d475255;
+    max-width:186px;margin-left:auto}   /* 停止键收窄靠右，防止孩子手掌误触 */
+  #cta.wait{background:linear-gradient(135deg,#9aa3ad,#7a838d);box-shadow:none}
+  /* 选好图、等待开穿：呼吸一下提醒点这里 */
+  #cta.ready{animation:readyPulse 1.7s ease-in-out infinite}
+  @keyframes readyPulse{50%{box-shadow:0 5px 16px #f2712c55,0 0 0 7px #f2712c2e}}
+
+  #shotBtn{width:64px;height:64px;border-radius:16px;border:none;flex-shrink:0;
+    background:#ffffff1f;color:#fff;font-size:21px;display:none;
+    flex-direction:column;align-items:center;justify-content:center;gap:1px;cursor:pointer}
+  #shotBtn.on{display:flex}
+  #shotBtn:active{background:#ffffff3a}
+  #shotBtn .ic{font-size:23px;line-height:1}
+  #shotBtn .lb{font-size:10px;font-weight:600;letter-spacing:.08em;opacity:.92}
+  /* 快门闪光：点拍照时整屏白一下，孩子知道「拍到啦」 */
+  #flash{position:absolute;inset:0;z-index:60;background:#fff;opacity:0;
+    pointer-events:none;transition:opacity .32s ease-out}
+  #flash.on{opacity:.85;transition:none}
+
+  /* ========== 站位提示 ========== */
+  #guide{position:absolute;inset:0;z-index:8;display:none;
+    align-items:center;justify-content:center;pointer-events:none}
+  #guide.on{display:flex}
+  #guide .box{text-align:center;color:#fff;opacity:1;
+    background:rgba(20,17,14,.62);border-radius:20px;padding:20px 24px 18px;
+    backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+    box-shadow:0 8px 30px rgba(0,0,0,.35)}
+  #guide svg{width:150px;height:auto;margin-bottom:8px;opacity:.95}
+  #guide p{font-size:14px;font-weight:600;letter-spacing:.3px;text-shadow:0 1px 6px #000a;margin:0}
+
+  /* ========== 预备态取景框 ========== */
+  #frame{position:absolute;left:50%;top:47%;transform:translate(-50%,-50%);
+    width:min(56vw,300px);aspect-ratio:3 / 4.4;z-index:7;
+    display:none;pointer-events:none}
+  #frame.on{display:block;animation:frameIn .34s ease-out}
+  @keyframes frameIn{from{opacity:0;transform:translate(-50%,-50%) scale(.94)}
+    to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+  #frame::before{content:'';position:absolute;inset:0;border-radius:26px;
+    border:2px dashed #ffffff8c;
+    box-shadow:0 0 0 9999px #00000026, inset 0 0 24px #0000001f}
+  #frame span{position:absolute;left:50%;bottom:-31px;transform:translateX(-50%);
+    white-space:nowrap;font-size:11.5px;font-weight:700;letter-spacing:.2px;color:#fff;
+    background:#00000085;padding:5px 13px;border-radius:99px;
+    backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+
+  /* ========== 连接中过渡层 ========== */
+  #conn{position:absolute;inset:0;z-index:9;display:none;
+    flex-direction:column;align-items:center;justify-content:center;gap:14px;
+    background:#0f0d0bcc;color:#fff;font-size:14px;font-weight:700;
+    letter-spacing:.3px;text-shadow:0 1px 8px #000a;
+    backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);
+    transition:opacity .25s;pointer-events:none}
+  #conn.on{display:flex}
+  #conn .sp{width:44px;height:44px;font-size:34px;line-height:44px;text-align:center;
+    display:inline-block;animation:cutSnip 1s ease-in-out infinite;
+    filter:drop-shadow(0 2px 6px #0006)}
+  @keyframes cutSnip{0%,100%{transform:rotate(-18deg) scale(1)}50%{transform:rotate(14deg) scale(1.12)}}
+  #conn .sp::after{content:'✂️';display:block}
+  #conn span{font-size:12px;font-weight:600;color:#ffffff8a;letter-spacing:0;
+    max-width:70%;text-align:center;line-height:1.5}
+  #conn span:empty{display:none}
+
+  /* ========== 载入 / 处理 ========== */
+  #boot{position:fixed;inset:0;z-index:300;background:#12100e;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;
+    transition:opacity .4s}
+  #boot.gone{opacity:0;pointer-events:none}
+  .spin{width:52px;height:52px;font-size:40px;line-height:52px;text-align:center;
+    display:inline-block;animation:cutSnip 1s ease-in-out infinite;
+    filter:drop-shadow(0 2px 8px #0008)}
+  .spin::after{content:'✂️';display:block}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  #boot .t{font-size:14px;color:#fff;font-weight:600}
+  #boot .s{font-size:12px;color:#ffffff6b;margin-top:-8px}
+
+  /* ========== Toast ========== */
+  #toast{position:absolute;left:50%;bottom:calc(118px + env(safe-area-inset-bottom));
+    transform:translate(-50%,10px);
+    background:#000000d9;color:#fff;font-size:13.5px;font-weight:600;
+    padding:11px 20px;border-radius:999px;z-index:200;opacity:0;
+    pointer-events:none;transition:opacity .25s,transform .25s;
+    max-width:min(78vw,460px);text-align:center;line-height:1.45}
+  #toast.on{opacity:1;transform:translate(-50%,0)}
+  /* 面板打开时提示改到顶部，别压住面板里的按钮 */
+  #toast.top{bottom:auto;top:calc(72px + env(safe-area-inset-top));transform:translate(-50%,-8px)}
+  #toast.top.on{transform:translate(-50%,0)}
+
+  input[type=file]{display:none}
+</style>
+</head>
+<body>
+<div id="app">
+  <video id="cam" autoplay playsinline muted></video>
+  <canvas id="cloth"></canvas>
+
+  <div id="guide">
+    <div class="box">
+      <svg viewBox="0 0 120 160" fill="none">
+        <circle cx="60" cy="26" r="17" stroke="#fff" stroke-width="2.2" stroke-dasharray="6 6"/>
+        <path d="M36 54 Q60 46 84 54 L92 132 Q60 142 28 132 Z"
+          stroke="#fff" stroke-width="2.2" stroke-dasharray="6 6"/>
+      </svg>
+      <p>站到画面中间，让上半身完整入镜</p>
+    </div>
+  </div>
+
+  <!-- 连接模型时的过渡层：底下能看到自己的本地画面，不至于黑屏 -->
+  <!-- 选好衣服、还没点「穿上」时的取景框：让孩子知道站哪儿 -->
+  <div id="frame"><span id="frameTxt">站到框里 · 全身入镜</span></div>
+
+  <div id="conn">
+    <i class="sp"></i>
+    <p id="connTxt">正在连接模型…</p>
+    <span id="connSub"></span>
+  </div>
+
+  <div id="top">
+    <div id="brand"><i id="dot"></i><div id="brandWrap"><span id="brandTxt">锦衣小裁缝</span><span id="slogan">小手一裁 · 宋锦上身</span></div></div>
+    <button id="timer" title="本次体验剩余时间"><i class="ring"></i><span id="timerTxt">15s</span></button>
+    <button class="rbtn" id="btnKey" title="接入模型">⚙</button>
+    <button class="rbtn" id="btnFlip" title="翻转摄像头">⟲</button>
+  </div>
+
+  <!-- 录制中：老师一眼知道正在录，孩子也知道这 15 秒会被留下来 -->
+  <div id="recBadge"><i></i><span id="recTxt">0s</span></div>
+
+  <div id="sheet" class="sheet">
+    <div class="panel">
+      <h3>接入真模型 <span class="tag">Xmax X2.1</span></h3>
+      <p class="note" id="keyNote">这台设备已经带好 Key，点「穿上」直接用云端模型；要换 Key 就粘贴新的覆盖它。</p>
+      <div class="modeRow">
+        <div style="flex:1">
+          <b>只用本机演示（不联网）</b>
+          <i>不用模型、不花额度、点了立刻穿上；iPad 用 Edge 卡住就开这个</i>
+        </div>
+        <button id="modeSwitch">关闭</button>
+      </div>
+      <div class="modeRow">
+        <div style="flex:1">
+          <b>录像带声音</b>
+          <i>开启后会把麦克风的声音一起录进视频；关掉就只录画面，不碰麦克风</i>
+        </div>
+        <button id="micSwitch">开启</button>
+      </div>
+      <div class="keyRow">
+        <input id="keyInput" type="password" autocomplete="off" spellcheck="false"
+               placeholder="粘贴 Xmax API Key">
+        <button class="eye" id="keyEye">显示</button>
+      </div>
+      <p class="tip">粘贴的 Key 只保存在这台设备的浏览器里，不会上传到任何服务器。</p>
+      <p class="tip" id="privacyLine">隐私：孩子的摄像头画面与画作会发到 Xmax 云端做实时生成，
+        本机只保留「今日次数」这类统计。</p>
+      <div class="rows">
+        <button class="ghost" id="keyClear">清除</button>
+        <button class="primary" id="keySave">保存</button>
+      </div>
+      <p class="tip small" id="keyUsage"></p>
+      <p class="tip small" id="keyWarn"></p>
+      <p class="tip small" id="keyDiag" style="cursor:pointer"></p>
+      <p class="tip small" id="keyModeHint" style="display:none"></p>
+    </div>
+  </div>
+
+  <!-- 挑衣服：范例一字排（点了直接穿） + 自己的画（拍照 / 相册） -->
+  <div id="pick" class="sheet">
+    <div class="panel">
+      <h3>挑一件衣服</h3>
+      <p class="note">下面 10 件是提前准备好的宋锦样式，点一下就能直接穿；
+        也可以用小朋友自己画的那一件。</p>
+
+      <div class="looksWrap">
+        <div class="looksHead">
+          <b>宋锦范例 · 10 款</b>
+          <em>点一下直接穿 →</em>
+          <button id="looksAll" type="button">全部</button>
+        </div>
+        <div class="looks" id="looks"></div>
+      </div>
+
+      <div class="or"><i></i><span>或者用小朋友自己画的</span><i class="r"></i></div>
+
+      <div class="pickGrid">
+        <button class="pickCard" id="pickCam">
+          <span class="ico">📷</span>
+          <span class="tx"><b>现在拍一张</b><i>对准画作，四边留空</i></span>
+        </button>
+        <button class="pickCard" id="pickAlbum">
+          <span class="ico">🖼</span>
+          <span class="tx"><b>从相册选</b><i>自动去底裁边</i></span>
+        </button>
+      </div>
+      <p class="tip">自己拍的画：白底会直接去底，桌面、墙面这类背景也会自动清掉。背景越干净，抠得越准。</p>
+      <button class="wide" id="pickCancel">取消</button>
+    </div>
+  </div>
+
+  <!-- 摄像头打不开：必须给出口，不能让老师对着黑屏猜 -->
+  <div id="camErr" class="sheet">
+    <div class="panel">
+      <h3>打不开摄像头</h3>
+      <p class="note" id="camErrNote">页面没能拿到摄像头。允许之后就能开始。</p>
+      <p class="tip" id="camErrHint">iPad / iPhone：设置 → Safari 浏览器 → 相机 → 允许；<br>
+        安卓：点地址栏左边的锁图标 → 权限 → 相机 → 允许。<br>
+        页面必须用 https 链接打开（本链接就是）。</p>
+      <div class="rows">
+        <button class="ghost" id="camErrClose">关闭</button>
+        <button class="primary" id="camErrRetry">重新打开</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 模型连不上（超时 / 报错）：必须给出口，不能一直转圈 -->
+  <div id="fail" class="sheet">
+    <div class="panel">
+      <h3 id="failTitle">这次没连上模型</h3>
+      <p class="note" id="failNote">等了很久模型都没出画面。</p>
+      <div class="stage" id="failStage"></div>
+      <p class="tip" id="failHint">可以先「用本机演示」继续上课：不联网、不花额度，衣服同样会贴在孩子身上。</p>
+      <div class="rows">
+        <button class="ghost" id="failClose">关掉</button>
+        <button class="primary" id="failDemo">用本机演示</button>
+      </div>
+      <button class="wide" id="failRetry">再试一次模型</button>
+    </div>
+  </div>
+
+  <!-- iPad 上的 Edge：换 Safari 一句话搞定，比等它卡住强 -->
+  <div id="edgeTip" class="sheet">
+    <div class="panel">
+      <h3>换到 Safari 打开更稳</h3>
+      <p class="note">这台 iPad 用的 Edge，连云端模型经常会一直转圈；同一个链接用 Safari 打开很快。</p>
+      <p class="tip">可以现在复制链接，粘贴到 Safari 的地址栏；也可以先用本机演示继续上课。</p>
+      <div class="url" id="edgeUrl"></div>
+      <div class="rows">
+        <button class="ghost" id="edgeLocal">本机演示</button>
+        <button class="primary" id="edgeTry">仍要试一次</button>
+      </div>
+      <button class="wide" id="edgeCopy">复制链接，去 Safari 粘贴</button>
+    </div>
+  </div>
+
+  <!-- 体验结束：自动留下刚才那一张，不至于到点就没了 -->
+  <div id="result">
+    <div class="rHead">
+      <b id="resTitle">刚才的样子</b>
+      <span id="resSub">15 秒体验已结束</span>
+    </div>
+    <img id="resultImg" alt="试穿结果">
+    <div class="vbox" id="resVideoBox">
+      <video id="resPlayer" playsinline webkit-playsinline loop muted controls preload="metadata"></video>
+      <span id="resVideoTag">循环播放</span>
+    </div>
+    <div class="rRows">
+      <button class="primary" id="resSave">保存这张</button>
+      <button class="vbtn" id="resVideo" style="display:none">保存这段视频</button>
+      <div class="pair">
+        <button class="ghost" id="resAgain">再来一次</button>
+        <button class="ghost" id="resChange">换一件</button>
+        <button class="ghost" id="resClose">关掉</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 切到 60 秒前的确认：一次约等于 4 次点数，别手滑 -->
+  <div id="durAsk" class="sheet">
+    <div class="panel">
+      <h3>这次用 60 秒？</h3>
+      <p class="note">60 秒一次大约等于现在 <b>4 次</b> 的点数。孩子能演完一小段，但额度掉得明显。</p>
+      <p class="tip">今天已经用了 <b id="durN">0</b> 次 · 累计 <b id="durS">0</b> 秒。</p>
+      <div class="rows">
+        <button class="ghost" id="durNo">改用 30 秒</button>
+        <button class="primary" id="durYes">就用 60 秒</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 今日次数用完 -->
+  <div id="limit" class="sheet">
+    <div class="panel">
+      <h3 id="limHead">今天的体验次数用完了</h3>
+      <p class="note" id="limNote">这台设备今天已经体验 <b>30</b> 次（上限 <span>30</span> 次），明天会自动恢复。</p>
+      <p class="tip" id="limTip">如果是老师还要继续上课：点右上角 ⚙ →「重置今日次数」就能接着用。</p>
+      <div class="rows">
+        <button class="primary" id="limClose">知道了</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 首次体验前的隐私告知 -->
+  <div id="privacy" class="sheet" style="background:#000000f2">
+    <div class="panel">
+      <h3>开始前，先跟家长说一句</h3>
+      <p class="note">要把小朋友画的衣服「穿上身」，这个页面会请一位「云端小裁缝」帮忙，所以：</p>
+      <ul class="plist">
+        <li><b>孩子的摄像头画面和选中的那件衣服</b>会发给这位云端小裁缝来合成，用完就丢掉，
+          我们自己不留、也不看这些画面。</li>
+        <li><b>这台设备</b>只记「今天玩了几次、共几秒」，不会传走。</li>
+        <li>用来请小裁缝的 <b>小钥匙</b> 只放在这台设备里。</li>
+      </ul>
+      <p class="tip small">建议课前跟家长说一句：课程里会用云端 AI 实时处理孩子的画面。
+        介意的话，可以在 ⚙ 里清掉小钥匙，改用完全不联网的「本机演示」。</p>
+      <div class="rows">
+        <button class="primary" id="privacyOk">知道了，开始</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 本次额度 / 倒计时 -->
+  <div id="quota" class="sheet">
+    <div class="panel">
+      <h3>本次体验时间</h3>
+      <div class="durHead"><b>时长</b><span>点一下切换，下次「穿上」生效</span></div>
+      <div class="durRow" id="durSeg">
+        <button type="button" data-sec="15">15 秒</button>
+        <button type="button" data-sec="30">30 秒</button>
+        <button type="button" data-sec="60">60 秒</button>
+      </div>
+      <p class="tip small" id="durTip"></p>
+      <div class="big"><b id="qLeft">15</b><span>秒剩余</span></div>
+      <div class="bar"><i id="qBar" style="width:100%"></i></div>
+      <p class="note" id="qNote" style="margin-top:10px">每次「穿上」固定 15 秒，到点自动结束，避免一直挂着计费。</p>
+      <div class="stat">
+        <div><b id="qCount">0</b><span>今天体验次数</span></div>
+        <div><b id="qSecs">0</b><span>今天累计秒数</span></div>
+        <div><b id="qCredit">—</b><span>账户剩余点数</span></div>
+      </div>
+      <p class="tip small" id="qTip">前两项只记在这台设备上。剩余点数从 Xmax 账户实时读取，点开面板时刷新。</p>
+      <div class="rows">
+        <button class="primary" id="qClose">继续玩</button>
+        <button class="ghost danger" id="qStop">结束</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="dock">
+    <div id="thumbWrap"><img id="thumb" alt=""></div>
+    <div id="dockMain">
+      <div id="dockTip">10 件宋锦范例，或拍一张自己的画</div>
+      <button id="cta">👘 挑一件衣服</button>
+    </div>
+    <button id="shotBtn" title="拍照：留住最好看的角度"><span class="ic">📷</span><span class="lb">拍照</span></button>
+  </div>
+
+  <div id="flash"></div>
+  <div id="toast"></div>
+</div>
+
+<div id="boot">
+  <div class="spin"></div>
+  <div class="t" id="bootT">正在打开摄像头…</div>
+  <div class="s" id="bootS"></div>
+</div>
+
+<input type="file" id="filePick" accept="image/*">
+<input type="file" id="fileCam" accept="image/*" capture="environment">
+
+<script type="module">
+/* =====================================================================
+   锦衣小裁缝 —— 全屏摄像头虚拟试衣
+   ---------------------------------------------------------------------
+   上传「一整件衣服的设计图」→ 自动去底 → 实时穿在身上。
+   短袖设计图变短袖、长袖变长袖、裙子变裙子，衣服形态由设计图本身决定。
+
+   贴合原理：本地 MediaPipe Pose 跟踪肩/髋，把衣服按身体姿态、距离、
+   倾角实时贴合并做圆柱弧面处理，因此竖拍横拍都跟着身体走，
+   而不是一张固定位置贴图。头部与背景完全不参与绘制，保持原样。
+
+   真模型模式：右上角 ⚙ 填入 Xmax API Key 后，「穿上」会把同一张去底后的
+   衣服图作为参考图送云端 X2.1 实时换装，返回的视频流直接铺满画面，
+   此时本地贴合层自动关闭。Key 只存在本机浏览器，直接发给 api.xmax.ai。
+   ===================================================================== */
+
+/* ----------------------------- 配置 ----------------------------- */
+const CONFIG = {
+  provider: 'demo',          // 'demo' | 'xmax'（填了 Key 自动切 xmax）
+  xmaxModel: 'x2.1',         // 官方公开模型名
+  tokenEndpoint: '',         // 保留：如需后端签发临时 Key 可填
+  // Xmax 换装提示词：关键教训 —— 只说「衣服替换成参考图中衣服」，模型看到
+  // 背带裙/挂脖款参考图会把它当成围兜围裙，画在胸口像围脖；只说「按本来款式」，
+  // 模型又会把竖长的裙子只穿到腰，还把人的裤子弄没露大腿。所以这里
+  // ① 明确「真衣服穿在身上」；② 禁止动下装/露腿；③ 衣长由 xmaxPrompt()
+  // 按画的款式（自动分类 + 宽高比）动态补充，范例款走这句通用版。
+  promptXmax: '参考图中是一件要穿在身上的衣服。把视频中人物的上身衣服替换成参考图中这件衣服，' +
+              '像真正穿衣服那样穿好：领口或肩带对齐肩膀，衣服平整覆盖整个躯干，' +
+              '下摆按这件衣服本来的款式自然垂下。绝对不能把它画成围兜、围脖、披肩、挂脖装饰，' +
+              '也不能只贴在胸口一小块。人物下身的裤子、裙子、腿部衣物保持原样，' +
+              '绝对不能移除、替换或让腿裸露；上衣下摆变长时自然罩在裤子外面。' +
+              '除此之外严格保留人物的脸、五官、头发、肤色、身体比例、姿势、手和背景，' +
+              '不要改变画面其他任何部分。衣服要贴合真实身形，' +
+              '有自然的领口、袖口、下摆和布料褶皱，随人物动作自然移动。',
+  prompt: '把参考图中的整件衣服穿在画面中的孩子身上。严格保持孩子的头部、五官、发型、肤色、' +
+          '姿势、手臂位置和背景完全不变；身体比例不能改变或变形；衣服要符合孩子真实的身形，' +
+          '有自然的领口、袖口、下摆和布料褶皱，随身体动作移动。',
+  promptEn: 'Dress the child in the complete garment shown in the reference image. Keep the head, ' +
+            'face, hair, skin tone, pose, arms and background completely unchanged. Preserve the ' +
+            'child\'s body proportions exactly. The garment must fit the real body with natural ' +
+            'collar, cuffs, hem and fabric folds, following body motion.',
+  sessionSeconds: 15,        // 当前单次时长（秒）：15/30/60，由档位切换覆盖
+  durations: [15, 30, 60],   // 可选档位；60 秒一次约等于 4 次 15 秒的点数
+  warnSeconds: 5,            // 剩这么多秒时提醒一次，随档位自动调整
+  dailyLimit: 30,            // 每台设备每天最多体验几次：防止链接外传把额度烧光
+  dailyMaxSeconds: 600,      // 每天累计秒数上限：防止一路开 60 秒把额度烧光
+
+  // 内置 Key：留空 = 老师自己在 ⚙ 里粘（只存本机）。
+  // 填上 = 任何打开本页的人都免填写直接用，但 Key 会随页面一起公开，
+  //        额度暴露在链接里。只在课堂内部分发，用完到控制台重置。
+  builtinKey: '',
+};
+
+/* ----------------------------- 状态 ----------------------------- */
+const S = {
+  stream:null, facing:'user', mirrored:true,
+  garmentImg:null, garmentCanvas:null, garmentURL:'', garmentSrc:'', garmentRef:null,
+  garmentFull:null,         // 手绘自动分类：null=范例款(走原逻辑) true=全身款 false=上半身款
+  garmentAr:0,              // 裁边后宽高比，给云端提示词挑衣长用
+  lookKey:'', lookName:'', lookPat:'',   // 选了哪件范例（打勾、顶部名字、片尾文字）
+  pose:null, landmarker:null, poseReady:false,
+  smooth:null,               // 平滑后的关键点
+  trying:false,
+  live:false,                // true = 正在用云端真模型生成
+  connecting:false,          // 正在建会话：挡住连点，避免开出两个会话双倍计费
+  camFail:false,             // 摄像头没拿到：界面要给出口，不能装成没事
+  // 用户微调（在自动贴合之上叠加）
+  scaleMul:1, offX:0, offY:0,
+  lastPts:null,
+};
+
+const $ = id => document.getElementById(id);
+
+/* ---------------- 体验时长档位（15 / 30 / 60） ----------------
+   存在本机；60 秒一次约 4 倍点数，所以切到 60 要过一道确认。 */
+const DUR_KEY = 'tryon_dur';
+function durWarn(sec){ return sec <= 15 ? 5 : (sec <= 30 ? 8 : 10); }
+function durLabel(sec){ return sec + ' 秒'; }
+
+function initDur(){
+  let v = 0;
+  try{ v = parseInt(localStorage.getItem(DUR_KEY) || '', 10); }catch(_){}
+  const sec = CONFIG.durations.indexOf(v) >= 0 ? v : 15;
+  CONFIG.sessionSeconds = sec;
+  CONFIG.warnSeconds = durWarn(sec);
+}
+
+function setDur(sec, quiet){
+  if(CONFIG.durations.indexOf(sec) < 0) return;
+  // 正在计时就先按当前档位结算，别让「已用 8 秒 / 上限 30 秒」这类比例算错
+  if(sess.running && sec !== CONFIG.sessionSeconds){
+    if(!quiet) toast('结束这一次后才能换时长', 2000);
+    paintDur();
+    return;
+  }
+  CONFIG.sessionSeconds = sec;
+  CONFIG.warnSeconds = durWarn(sec);
+  try{ localStorage.setItem(DUR_KEY, String(sec)); }catch(_){}
+  paintDur();
+  renderTimer();
+  if($('quota').classList.contains('on')) paintQuota();   // 面板开着就直接刷新，别等关掉再开
+  if($('timer') && !sess.running) $('timerTxt').textContent = durLabel(sec);
+  if(!S.live && !S.trying) updateModeHint();
+  if(!quiet) toast('这次按 ' + durLabel(sec) + ' 算', 1800);
+}
+
+function paintDur(){
+  const seg = $('durSeg');
+  if(!seg) return;
+  seg.querySelectorAll('button').forEach(b=>{
+    b.classList.toggle('on', parseInt(b.dataset.sec,10) === CONFIG.sessionSeconds);
+  });
+  const tip = $('durTip');
+  if(tip){
+    tip.textContent = CONFIG.sessionSeconds === 15
+      ? '15 秒最省点数，够孩子转个身。'
+      : CONFIG.sessionSeconds === 30
+      ? '30 秒约 2 倍点数，孩子能多走两步、转个圈。'
+      : '60 秒约 4 倍点数，够演一小段；额度掉得快，建议一节只用几次。';
+  }
+}
+const cam = $('cam'), canvas = $('cloth');
+const ctx = canvas.getContext('2d');
+const stage = $('app');
+const cta = $('cta');
+
+/* ----------------------------- 工具 ----------------------------- */
+let toastTimer;
+function toast(msg, ms=2100){
+  const t = $('toast');
+  // 面板/结果层开着时，提示挪到顶部，否则会盖住面板里的按钮
+  const covered = !!document.querySelector('.sheet.on') || $('result').classList.contains('on');
+  t.classList.toggle('top', covered);
+  t.textContent = msg; t.classList.add('on');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('on'), ms);
+}
+/** 开面板前先收掉浮层提示，别让两套文字压在一起 */
+function clearToast(){
+  clearTimeout(toastTimer);
+  $('toast').classList.remove('on');
+}
+const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+const lerp=(a,b,t)=>a+(b-a)*t;
+function setBrand(txt, ok=true){
+  // 断网时统一显示离线态；模型准备、结束会话等后续回调不会把它盖回在线
+  // 错误类提示（ok=false）保留原文，别把「摄像头没打开」也吞了
+  if(offlineMode() && !S.trying && !S.live && !/摄像头/.test(txt)){
+    txt = '离线 · 本机演示'; ok = false;
+  }
+  $('brandTxt').textContent = txt;
+  $('dot').className = ok ? '' : 'off';
+}
+/** 顶部名字：选的是范例就写款式名，是自己的画才写「锦衣小裁缝」 */
+function homeBrand(){ return S.lookName ? ('宋锦 · ' + S.lookName) : '锦衣小裁缝'; }
+
+/* =====================================================================
+   一、摄像头（预览用 cover，绝不拉伸）
+   ===================================================================== */
+async function startCamera(facing='user'){
+  if(S.stream) S.stream.getTracks().forEach(t=>t.stop());
+  S.stream = null;
+  const wants = [
+    {video:{facingMode:{exact:facing},width:{ideal:1280},height:{ideal:720}},audio:false},
+    {video:{facingMode:facing,width:{ideal:1280}},audio:false},
+    {video:true,audio:false},
+  ];
+  let err;
+  for(const c of wants){
+    try{ S.stream = await navigator.mediaDevices.getUserMedia(c); break; }
+    catch(e){ err=e; }
+  }
+  if(!S.stream) throw err || new Error('无摄像头');
+  cam.srcObject = S.stream;
+  S.facing = facing;
+  S.mirrored = facing === 'user';
+  cam.classList.toggle('mirror-off', !S.mirrored);
+  await cam.play().catch(()=>{});
+  resizeCanvas();
+}
+
+$('btnFlip').addEventListener('click', async ()=>{
+  if(S.connecting) return;          // 建会话期间别抢摄像头
+  const next = S.facing==='user' ? 'environment' : 'user';
+  S.facing = next;
+  // 真模型模式下，换摄像头要重建会话（SDK 自己采集摄像头）
+  if(S.live){ await restartLive(); toast(next==='user'?'前置摄像头':'后置摄像头'); return; }
+  try{ await startCamera(next); S.smooth=null; toast(next==='user'?'前置摄像头':'后置摄像头'); }
+  catch(_){ toast('切换失败'); }
+});
+
+/* =====================================================================
+   二、画布尺寸（跟随舞台；上层与 video 同框，坐标可对齐）
+   ===================================================================== */
+function resizeCanvas(){
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const w = stage.clientWidth, h = stage.clientHeight;
+  canvas.width = Math.round(w*dpr);
+  canvas.height = Math.round(h*dpr);
+  canvas.style.width = w+'px';
+  canvas.style.height = h+'px';
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  S.dpr = dpr;
+}
+window.addEventListener('resize', ()=>{ resizeCanvas(); });
+window.addEventListener('orientationchange', ()=>setTimeout(resizeCanvas,260));
+
+/* =====================================================================
+   三、姿态跟踪（MediaPipe Pose，本地文件）
+   ===================================================================== */
+function withTimeout(p, ms, msg, stage){
+  const task = Promise.resolve(p);
+  return new Promise((res, rej)=>{
+    let settled = false;
+    const t = setTimeout(()=>{
+      if(settled) return;
+      settled = true;
+      const e = new Error(msg || '超时');
+      e.code = 'TIMEOUT';
+      if(stage) e.stage = stage;
+      rej(e);
+    }, ms);
+    task.then(v=>{ if(settled) return; settled = true; clearTimeout(t); res(v); },
+              e=>{ if(settled) return; settled = true; clearTimeout(t); rej(e); });
+  });
+}
+
+async function initPose(){
+  const t0 = performance.now();
+  const T = () => Math.round(performance.now() - t0) + 'ms';
+  setBrand('正在准备贴合…', false);
+  try{
+    const vision = await withTimeout(import('./vendor/vision_bundle.mjs'), 15000, '模型脚本加载超时');
+    console.log('[pose] bundle', T());
+    const fileset = await withTimeout(
+      vision.FilesetResolver.forVisionTasks('./vendor/wasm'), 20000, 'wasm 加载超时');
+    console.log('[pose] wasm', T());
+
+    const make = (delegate) => vision.PoseLandmarker.createFromOptions(fileset, {
+      baseOptions: { modelAssetPath:'./vendor/pose_landmarker_lite.task', delegate },
+      runningMode:'VIDEO',
+      numPoses:1,
+      minPoseDetectionConfidence:0.5,
+      minPosePresenceConfidence:0.5,
+      minTrackingConfidence:0.5,
+    });
+
+    // 先试 GPU；某些平板/浏览器上 GPU 委托会卡很久，超时就换 CPU（更稳）
+    try{
+      S.landmarker = await withTimeout(make('GPU'), 28000, 'GPU 委托超时');
+      console.log('[pose] gpu ready', T());
+    }catch(e1){
+      console.warn('GPU 委托不可用，改用 CPU', e1 && e1.message);
+      S.landmarker = await withTimeout(make('CPU'), 28000, 'CPU 委托超时');
+      console.log('[pose] cpu ready', T());
+    }
+
+    S.poseReady = true;
+    if(!S.trying) setBrand(homeBrand(), true);
+  }catch(e){
+    console.warn('姿态模型不可用，退回手动贴合', e);
+    S.poseReady = false;
+    if(!S.trying) setBrand(homeBrand() + ' · 手动模式', false);
+    toast('没识别到身体，可以用双指缩放、单指拖动调整衣服', 3600);
+  }
+}
+
+/* 视频归一化坐标 → 舞台像素坐标（考虑 cover 裁切与镜像） */
+function vidToStage(nx, ny){
+  const vw = cam.videoWidth || 1280, vh = cam.videoHeight || 720;
+  const sw = stage.clientWidth, sh = stage.clientHeight;
+  const s = Math.max(sw/vw, sh/vh);
+  const dw = vw*s, dh = vh*s;
+  const dx = (sw-dw)/2, dy = (sh-dh)/2;
+  let x = dx + nx*dw;
+  const y = dy + ny*dh;
+  if(S.mirrored) x = sw - x;
+  return {x, y};
+}
+
+/* 取肩与髋，做平滑，避免衣服抖动 */
+function readPose(){
+  if(!S.poseReady || !S.landmarker || cam.readyState < 2) return null;
+  let res;
+  try{ res = S.landmarker.detectForVideo(cam, performance.now()); }
+  catch(_){ return null; }
+  if(!res || !res.landmarks || !res.landmarks.length) return null;
+  const lm = res.landmarks[0];
+
+  const L = i => vidToStage(lm[i].x, lm[i].y);
+  const vis = i => lm[i].visibility ?? 1;
+
+  // 11/12 肩，23/24 髋
+  if(vis(11)<0.35 || vis(12)<0.35) return null;
+  const ls=L(11), rs=L(12);
+  const lh = vis(23)>0.3 ? L(23) : null;
+  const rh = vis(24)>0.3 ? L(24) : null;
+
+  const shMid = {x:(ls.x+rs.x)/2, y:(ls.y+rs.y)/2};
+  const shW = Math.hypot(rs.x-ls.x, rs.y-ls.y);
+
+  // 合理性校验：画面里的杂点、远处路人、断肢误检都会给出「很窄的肩膀」，
+  // 一旦放过就会把衣服缩成一个小点。这里按画面尺寸设下限。
+  const sw = stage.clientWidth, sh = stage.clientHeight;
+  const minShW = Math.max(48, Math.min(sw, sh) * 0.10);
+  if(shW < minShW) return null;
+  if(shMid.x < sw*0.05 || shMid.x > sw*0.95) return null;
+  if(shMid.y < sh*0.03 || shMid.y > sh*0.92) return null;
+
+  let hipMid=null, hipW=0;
+  if(lh && rh){
+    const hw = Math.hypot(rh.x-lh.x, rh.y-lh.y);
+    // 髋宽必须和肩宽同一量级，否则宁可不用户髋数据（裙长退化为按衣服比例推）
+    if(hw > shW*0.45 && hw < shW*2.2){
+      hipMid = {x:(lh.x+rh.x)/2, y:(lh.y+rh.y)/2};
+      hipW = hw;
+    }
+  }
+
+  return { ls, rs, shMid, shW, hipMid, hipW,
+           angle: Math.atan2(rs.y-ls.y, rs.x-ls.x) };
+}
+
+function smoothPose(p){
+  if(!p) return null;
+  if(!S.smooth) { S.smooth = JSON.parse(JSON.stringify(p)); return S.smooth; }
+  const k = 0.28;   // 越小越稳、越大越跟手
+  const s = S.smooth;
+  s.shMid.x = lerp(s.shMid.x, p.shMid.x, k);
+  s.shMid.y = lerp(s.shMid.y, p.shMid.y, k);
+  s.shW     = lerp(s.shW, p.shW, k);
+  s.angle   = lerp(s.angle, p.angle, k);
+  s.ls.x = lerp(s.ls.x,p.ls.x,k); s.ls.y = lerp(s.ls.y,p.ls.y,k);
+  s.rs.x = lerp(s.rs.x,p.rs.x,k); s.rs.y = lerp(s.rs.y,p.rs.y,k);
+  if(p.hipMid){
+    if(!s.hipMid) s.hipMid = {...p.hipMid, };
+    s.hipMid.x = lerp(s.hipMid.x, p.hipMid.x, k);
+    s.hipMid.y = lerp(s.hipMid.y, p.hipMid.y, k);
+    s.hipW = lerp(s.hipW||p.hipW, p.hipW, k);
+  } else {
+    s.hipMid = null;
+  }
+  return s;
+}
+
+/* =====================================================================
+   四、把衣服画在身上
+   —— 逐列 warp：随肩线倾角旋转、按宽高比推衣长、圆柱弧面收边
+   ===================================================================== */
+const clothLayer = document.createElement('canvas');
+const cctx = clothLayer.getContext('2d');
+
+/** 依据机身与衣服宽高比，推算衣服在屏幕上的尺寸与落点 */
+function clothGeometry(pose, img){
+  const ar = img.width / img.height;
+  const shW = pose.shW * S.scaleMul;
+
+  // 衣服图里「肩点」大致落在整图宽度的哪个比例：
+  // 平铺短袖袖子横着展开 → 肩点靠内；长袖/裙袖子垂下来 → 整图更窄、肩点靠外
+  const shoulderRatio = ar > 1.05 ? 0.50 : (ar > 0.82 ? 0.53 : 0.645);
+  let bodyW = Math.min(shW / shoulderRatio, shW * 2.3);   // 上限保护，避免过宽
+  let bodyH = bodyW / ar;
+
+  // 手绘画作：衣长不能只看宽高比 —— 小朋友画的裙子常常又宽又扁，
+  // 按比例推出来只有一截，盖在身上就像围脖。分类已经自动完成：
+  // 全身款（裙/袍）把衣长补到膝盖附近，上半身款（上衣）补到胯部。
+  // 宽度沿用肩宽映射不变，只是纵向补足；范例款是平铺实拍，保持原逻辑。
+  if(S.garmentSrc !== 'look' && S.garmentFull !== null && img === S.garmentCanvas){
+    const target = shW * (S.garmentFull ? 2.2 : 1.55);
+    if(bodyH < target) bodyH = target;
+  }
+
+  // 衣服顶端相对肩线的高度：平铺图肩在很靠上（下面 topY 直接用 0.055 系数）
+
+  // --- 永不超出画面：横屏竖屏、孩子离得再近，衣服也不能溢出屏幕 ---
+  // 底边给自己留出控制条的空间，免得衣服被底部按钮压住
+  const sw = stage.clientWidth, sh = stage.clientHeight;
+  const dockH = ($('dock')?.offsetHeight || 0) + 16;
+  const maxH = (sh - dockH - (pose.shMid.y + S.offY)) / 0.945;
+  if(maxH > 0 && bodyH > maxH){
+    const f = maxH / bodyH; bodyW *= f; bodyH *= f;
+  }
+  const maxW = sw * 0.95;
+  if(bodyW > maxW){
+    const f = maxW / bodyW; bodyW *= f; bodyH *= f;
+  }
+
+  // 落点中心
+  const cx = pose.shMid.x + S.offX;
+  const topY = pose.shMid.y - bodyH * 0.055 + S.offY;
+
+  return { ar, bodyW, bodyH, cx, topY, angle: pose.angle };
+}
+
+function drawCloth(pose){
+  const img = S.garmentCanvas;
+  const sw = stage.clientWidth, sh = stage.clientHeight;
+
+  ctx.clearRect(0,0,sw,sh);
+  if(!S.trying || !img) return;
+
+  const g = clothGeometry(pose, img);
+
+  // --- 离屏绘制：逐列 warp ---
+  const dpr = S.dpr || 1;
+  if(clothLayer.width !== canvas.width || clothLayer.height !== canvas.height){
+    clothLayer.width = canvas.width;
+    clothLayer.height = canvas.height;
+  }
+  cctx.setTransform(dpr,0,0,dpr,0,0);
+  cctx.clearRect(0,0,sw,sh);
+
+  cctx.save();
+  cctx.translate(g.cx, g.topY);
+  cctx.rotate(g.angle);
+  // 以肩线中点为锚，向左上展开
+  cctx.translate(-g.bodyW/2, 0);
+
+  const COLS = 64;
+  const colW = g.bodyW / COLS;
+  const srcColW = img.width / COLS;
+
+  for(let i=0;i<COLS;i++){
+    const u = (i + 0.5) / COLS;                 // 0..1 从左到右
+    // 圆柱弧面：中间正常，两侧轻微收窄并下沉，模拟布料包裹身体
+    const curve = Math.sin(u * Math.PI);         // 0..1..0
+    const hScale = 0.965 + 0.035 * curve;        // 两侧略短
+    const yDrop  = (1 - curve) * g.bodyH * 0.012; // 两侧略下垂
+
+    cctx.drawImage(
+      img,
+      i*srcColW, 0, srcColW, img.height,
+      i*colW, yDrop, colW + 0.7, g.bodyH * hScale
+    );
+  }
+  cctx.restore();
+
+  // --- 弧面明暗：边缘压暗、中间提亮（只作用在衣服像素上）---
+  cctx.save();
+  cctx.setTransform(1,0,0,1,0,0);
+  cctx.globalCompositeOperation = 'source-atop';
+
+  cctx.setTransform(dpr,0,0,dpr,0,0);
+  const cx = g.cx, halfW = g.bodyW/2;
+  const shade = cctx.createLinearGradient(cx-halfW, 0, cx+halfW, 0);
+  shade.addColorStop(0.00,'rgba(55,48,40,.34)');
+  shade.addColorStop(0.13,'rgba(55,48,40,.07)');
+  shade.addColorStop(0.34,'rgba(255,255,255,.10)');
+  shade.addColorStop(0.50,'rgba(255,255,255,.14)');
+  shade.addColorStop(0.68,'rgba(255,255,255,.08)');
+  shade.addColorStop(0.88,'rgba(55,48,40,.09)');
+  shade.addColorStop(1.00,'rgba(55,48,40,.36)');
+  cctx.fillStyle = shade;
+  cctx.fillRect(0,0,sw,sh);
+
+  // 下摆自然加深（离光源远）
+  const hem = cctx.createLinearGradient(0, g.topY + g.bodyH*0.62, 0, g.topY + g.bodyH*1.02);
+  hem.addColorStop(0,'rgba(40,35,30,0)');
+  hem.addColorStop(1,'rgba(40,35,30,.22)');
+  cctx.fillStyle = hem;
+  cctx.fillRect(0,0,sw,sh);
+
+  cctx.restore();
+
+  // --- 合成到主画布，带一点落影 ---
+  ctx.save();
+  ctx.shadowColor = 'rgba(0,0,0,.42)';
+  ctx.shadowBlur = 16;
+  ctx.shadowOffsetY = 8;
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.drawImage(clothLayer, 0, 0);
+  ctx.restore();
+}
+
+/* =====================================================================
+   五、主循环
+   ===================================================================== */
+let rafId = null, lastPoseTime = 0, lastGoodPose = 0, guideShown = false;
+
+function loop(){
+  rafId = requestAnimationFrame(loop);
+  if(!S.trying) return;
+
+  const now = performance.now();
+  // 姿态检测节流到约 24fps，渲染仍走 60fps
+  if(now - lastPoseTime > 42){
+    lastPoseTime = now;
+    const raw = readPose();
+    if(raw){ S.lastPts = smoothPose(raw); lastGoodPose = now; }
+  }
+
+  // 姿态丢失超过 2.5 秒就丢弃旧坐标，避免衣服「冻」在画面某个角落
+  if(S.lastPts && now - lastGoodPose > 2500) S.lastPts = null;
+
+  let pose = S.lastPts;
+  if(!pose){
+    // 没有姿态数据：退回固定的中间位置，并提示孩子站进画面
+    const sw = stage.clientWidth, sh = stage.clientHeight;
+    pose = {
+      shMid:{x:sw/2, y:sh*0.30}, shW:sw*0.30, angle:0, hipMid:null, hipW:0
+    };
+    if(S.poseReady && !guideShown){
+      guideShown = true;
+      $('guide').classList.add('on');
+    }
+  } else if(guideShown){
+    guideShown = false;
+    $('guide').classList.remove('on');
+  }
+  drawCloth(pose);
+}
+
+/* =====================================================================
+   六、选图（相册 / 现场拍）→ 自动抠图 → 成衣
+   ===================================================================== */
+$('filePick').addEventListener('change', e=>{
+  const f = e.target.files && e.target.files[0];
+  e.target.value = '';            // 允许连续选同一张
+  handleFile(f, 'album');
+});
+$('fileCam').addEventListener('change', e=>{
+  const f = e.target.files && e.target.files[0];
+  e.target.value = '';
+  handleFile(f, 'cam');
+});
+
+/* ---------------- 选图面板 ---------------- */
+function openPick(){
+  clearToast();
+  prewarmXmax();              // 老师开始挑衣服了：顺手把模型包先下好（只下载，不计费）
+  // 打开时把已经选中的那件标出来
+  const cur = S.lookKey;
+  document.querySelectorAll('#looks .look').forEach(el=>{
+    el.classList.toggle('on', !!cur && el.dataset.k === cur);
+  });
+  $('pick').classList.add('on');
+  paintFrame();
+}
+function closePick(){ $('pick').classList.remove('on'); paintFrame(); }
+window.openPick = openPick;
+
+/* 范例款：图片在服务端已经去过底，点一下直接变成可穿的衣服 */
+const LOOKS = [
+  {k:'m1', n:'圆领袍',     p:'八达晕团花', tip:'八达晕：四通八达，路路通'},
+  {k:'m2', n:'交领长衫',   p:'缠枝瑞草',   tip:'缠枝纹：生生不息，绵绵不断'},
+  {k:'m3', n:'襕衫',       p:'龟背卍字',   tip:'龟背纹：像龟甲，寓意长寿'},
+  {k:'m4', n:'比甲长裤',   p:'方胜锁子',   tip:'方胜纹：两方相叠，同心吉祥'},
+  {k:'w1', n:'齐腰襦裙',   p:'宝相花缠枝', tip:'宝相花：集众花之美的吉祥花'},
+  {k:'w2', n:'褙子百褶裙', p:'八达晕',     tip:'八达晕：四通八达，路路通'},
+  {k:'w3', n:'比甲马面裙', p:'龟背填花',   tip:'龟背填花：龟甲纹里开出小花'},
+  {k:'w4', n:'短袄长裙',   p:'天华团花',   tip:'团花：花团锦簇，团团圆圆'},
+  {k:'w5', n:'齐胸襦裙',   p:'缠枝莲花',   tip:'缠枝莲：莲花清净，枝蔓连绵'},
+  {k:'w6', n:'圆领女袍',   p:'鸾凤云纹',   tip:'鸾凤云纹：瑞鸟展翅，祥云相伴'},
+];
+let lookBusy = false;
+
+(function buildLooks(){
+  const box = $('looks');
+  if(!box) return;
+  box.innerHTML = LOOKS.map((l,i)=>
+    '<button class="look" type="button" data-k="' + l.k + '">'
+    + '<span class="shot"><img src="looks/' + l.k + '-t.webp" alt="' + l.n + '" '
+    + 'loading="eager" decoding="async"></span>'
+    + '<span class="cap"><b>' + l.n + '</b><i>' + l.p + '</i></span>'
+    + '</button>').join('');
+  let dragged = false;
+  $('looksAll').addEventListener('click', ()=>{
+    const on = box.classList.toggle('grid');
+    $('looksAll').textContent = on ? '横滑' : '全部';
+    if(on) box.scrollLeft = 0;
+  });
+  box.addEventListener('touchstart', ()=>{ dragged = false; }, {passive:true});
+  box.addEventListener('touchmove', ()=>{ dragged = true; }, {passive:true});
+  box.addEventListener('click', e=>{
+    if(dragged) return;                 // 横滑之后收尾的点击不算选择，防止误换衣
+    const el = e.target.closest('.look');
+    if(!el) return;
+    const look = LOOKS.find(x=>x.k === el.dataset.k);
+    if(look) applyLook(look, el);
+  });
+})();
+
+/* 试穿中底栏：操作提示和这句纹样寓意来回换，孩子看衣服时顺便知道它在讲什么 */
+let dockTipTimer = null;
+function startDockTips(){
+  stopDockTips();
+  const look = LOOKS.find(x=>x.k === S.lookKey);
+  if(!look || !look.tip) return;
+  const base = $('dockTip').textContent;
+  let flip = false;
+  dockTipTimer = setInterval(()=>{
+    if(!S.trying && !S.live){ stopDockTips(); return; }
+    flip = !flip;
+    $('dockTip').textContent = flip ? look.tip : base;
+  }, 5500);
+}
+function stopDockTips(){ if(dockTipTimer){ clearInterval(dockTipTimer); dockTipTimer = null; } }
+
+function loadImg(src){
+  return new Promise((res,rej)=>{
+    const i = new Image();
+    i.onload = ()=>res(i);
+    i.onerror = ()=>rej(new Error('decode'));
+    i.src = src;
+  });
+}
+
+async function applyLook(look, el){
+  if(!look || lookBusy) return;
+  // 万一正在穿：先收掉旧会话，免得换了衣服还在按旧图计费
+  if(S.live || S.trying){ try{ stopTryOn(); }catch(_){} }
+  lookBusy = true;
+  if(el) el.classList.add('wait');
+
+  $('bootT').textContent = '正在准备「' + look.n + '」…';
+  $('bootS').textContent = '已经去过背景，马上就能穿';
+  $('boot').classList.remove('gone');
+  await new Promise(r=>setTimeout(r,60));
+
+  try{
+    const img = await loadImg('looks/' + look.k + '.webp');
+
+    // 已经是透明底：直接铺到画布上，裁掉四周空边就能当成品用
+    const out = document.createElement('canvas');
+    out.width = img.naturalWidth; out.height = img.naturalHeight;
+    out.getContext('2d').drawImage(img, 0, 0);
+    trim(out);
+
+    cutInfo = { ok:true, mode:'look' };
+    S.cutInfo = cutInfo;
+    S.garmentImg = img;
+    S.garmentCanvas = out;
+    S.garmentURL = 'looks/' + look.k + '-t.webp';   // 缩略图直接复用，不必再编码
+    S.garmentSrc = 'look';
+    S.garmentRef = null;      // 范例款本来就是照片，直接用原图上传
+    S.garmentFull = null;     // 范例款是平铺实拍，走原有几何逻辑
+    S.garmentAr = img.naturalWidth / Math.max(1, img.naturalHeight);
+    S.lookKey = look.k;
+    S.lookName = look.n;
+    S.lookPat = look.p || '';
+
+    $('thumb').src = S.garmentURL;
+    $('thumbWrap').classList.add('on');
+    $('boot').classList.add('gone');
+
+    if(el) el.classList.remove('wait');
+    closePick();
+
+    cta.textContent = '✨ 穿上';
+    cta.classList.remove('wait','stop');
+    S.trying = false;
+    setBrand(homeBrand(), true);
+    updateModeHint();
+    prewarmXmax();
+    toast('已选好「' + look.n + '」·' + look.p + '，点「✨ 穿上」', 2400);
+  }catch(e){
+    $('boot').classList.add('gone');
+    if(el) el.classList.remove('wait');
+    console.warn('范例图加载失败', e);
+    toast(offlineMode()
+      ? '这件还没存到本机，联网打开一次就会存好；先换一件已经能穿的'
+      : '这件没加载出来，先点「从相册选」换一件试试；也可能是网络断了', 4200);
+  }finally{
+    lookBusy = false;
+  }
+}
+
+
+$('pickCam').addEventListener('click', ()=>{
+  closePick();
+  // capture 属性：手机上直接唤起相机，拍完的图走同一条抠图流程
+  $('fileCam').value = '';
+  $('fileCam').click();
+});
+$('pickAlbum').addEventListener('click', ()=>{
+  closePick();
+  $('filePick').value = '';
+  $('filePick').click();
+});
+$('pickCancel').addEventListener('click', closePick);
+$('pick').addEventListener('click', e=>{ if(e.target.id === 'pick') closePick(); });
+
+function detectWhiteBg(img){
+  const w=140, h=Math.round(140*img.height/img.width);
+  const c=document.createElement('canvas'); c.width=w; c.height=h;
+  const x=c.getContext('2d',{willReadFrequently:true});
+  x.drawImage(img,0,0,w,h);
+  const d=x.getImageData(0,0,w,h).data;
+  const px=[]; const push=(i,j)=>{const k=(j*w+i)*4;px.push([d[k],d[k+1],d[k+2]]);};
+  for(let i=0;i<w;i++){push(i,0);push(i,1);push(i,h-1);push(i,h-2);}
+  for(let j=0;j<h;j++){push(0,j);push(1,j);push(w-1,j);push(w-2,j);}
+  let nw=0;
+  for(const [r,g,b] of px){
+    const mn=Math.min(r,g,b), mx=Math.max(r,g,b);
+    if(mx>225 && (mx-mn)<24) nw++;
+  }
+  return nw/px.length > 0.5;
+}
+
+/** 抠图结果：ok=false 表示没能干净分离背景 */
+let cutInfo = { ok:false, mode:'none', ratio:0, tol:0 };
+
+/** 背景模型：取图片四边的中位色当“背景色”，用偏差的高分位决定容差。
+ *  这样白底扫描件、拍照的桌面/墙面色（含纹理、影子）都能处理。 */
+function borderColor(p, w, h){
+  const arr = [];
+  const push = (i,j)=>{ const k=(j*w+i)*4; arr.push([p[k],p[k+1],p[k+2]]); };
+  for(let i=0;i<w;i++){ push(i,0); push(i,1); push(i,h-1); push(i,h-2); }
+  for(let j=0;j<h;j++){ push(0,j); push(1,j); push(w-1,j); push(w-2,j); }
+  const med = a => { const s=a.slice().sort((x,y)=>x-y); return s[s.length>>1]; };
+  const r = med(arr.map(v=>v[0])), g = med(arr.map(v=>v[1])), b = med(arr.map(v=>v[2]));
+  // 用 98 分位而不是均值：桌纹、木纹这类偏差要吃掉，又不被个别反光点带偏
+  const devs = arr.map(v => Math.abs(v[0]-r)+Math.abs(v[1]-g)+Math.abs(v[2]-b)).sort((a,b)=>a-b);
+  const dev = devs[Math.floor(devs.length * 0.98)] || 0;
+  return { r, g, b, dev };
+}
+
+/** 估纸张倾角：对手上的纸做“最小面积外接框”，求让框最小的角度。
+ *  纸接近矩形，填满率不够（不是一张纸）就返回 0，不做旋转。 */
+function pageAngle(mask, w, h){
+  const step = Math.max(1, Math.round(Math.sqrt((w*h)/45000)));
+  const pts = [];
+  for(let y=0;y<h;y+=step) for(let x=0;x<w;x+=step) if(!mask[y*w+x]) pts.push(x,y);
+  if(pts.length < 60) return 0;
+
+  let best = { area: Infinity, deg: 0, bw: 0, bh: 0 };
+  for(let d=-20; d<=20; d+=0.5){
+    const rad = d*Math.PI/180, cs = Math.cos(rad), sn = Math.sin(rad);
+    let minX=Infinity, maxX=-Infinity, minY=Infinity, maxY=-Infinity;
+    for(let i=0;i<pts.length;i+=2){
+      const X =  pts[i]*cs + pts[i+1]*sn;
+      const Y = -pts[i]*sn + pts[i+1]*cs;
+      if(X<minX)minX=X; if(X>maxX)maxX=X;
+      if(Y<minY)minY=Y; if(Y>maxY)maxY=Y;
+    }
+    const bw = maxX-minX, bh = maxY-minY, area = bw*bh;
+    if(area < best.area) best = { area, deg:d, bw, bh };
+  }
+
+  const fill = (pts.length/2) * step * step / best.area;   // 纸张填满率
+  const aspect = best.bw / best.bh;
+  if(fill < 0.62 || aspect < 0.4 || aspect > 2.6) return 0;
+  if(Math.abs(best.deg) < 1.5) return 0;
+  return best.deg;
+}
+
+/** 把画布旋转指定角度（反向抵消纸张倾斜），四周补透明 */
+function rotateCanvas(src, deg){
+  const rad = -deg * Math.PI/180;
+  const w = src.width, h = src.height;
+  const nw = Math.round(Math.abs(w*Math.cos(rad)) + Math.abs(h*Math.sin(rad)));
+  const nh = Math.round(Math.abs(w*Math.sin(rad)) + Math.abs(h*Math.cos(rad)));
+  const o = document.createElement('canvas');
+  o.width = nw; o.height = nh;
+  const ox = o.getContext('2d');
+  ox.translate(nw/2, nh/2);
+  ox.rotate(rad);
+  ox.drawImage(src, -w/2, -h/2);
+  return o;
+}
+
+/** 自动抠图：从四边向内做连通填充，只去掉“和边框连着”的背景。
+ *  衣服内部的白色布料被轮廓线挡住，不会被误删。
+ *  - 白底扫描件：一轮即可
+ *  - 拍照（桌面/墙面背景）：先去掉有色背景，再吃掉纸的浅色边 */
+function cutout(img){
+  const maxSide = 1500;
+  const k = Math.min(1, maxSide / Math.max(img.width, img.height));
+  const w = Math.round(img.width * k), h = Math.round(img.height * k);
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  const x = c.getContext('2d', { willReadFrequently: true });
+  x.drawImage(img, 0, 0, w, h);
+
+  const id = x.getImageData(0, 0, w, h);
+  const p = id.data;
+
+  // 原图本身带透明像素 → 直接裁边即可，不要再抠
+  let hasAlpha = false;
+  for (let i = 3; i < p.length; i += 4) { if (p[i] < 245) { hasAlpha = true; break; } }
+  if (hasAlpha) { trim(c); cutInfo = { ok:true, mode:'alpha' }; return c; }
+
+  const binfo = borderColor(p, w, h);
+  const nearWhite = Math.min(binfo.r, binfo.g, binfo.b) > 196 && binfo.dev < 30;
+  // 容差跟着背景纹理走：纹理越花放得越宽，但有上限，别把衣服吃掉
+  const tol = clamp(binfo.dev * 1.25 + 22, 34, 110);
+
+  const isBgColor = i => {
+    const d = Math.abs(p[i]-binfo.r) + Math.abs(p[i+1]-binfo.g) + Math.abs(p[i+2]-binfo.b);
+    return d < tol;
+  };
+  const isPaperWhite = i => {
+    const r = p[i], g = p[i+1], b = p[i+2];
+    const mn = Math.min(r,g,b), mx = Math.max(r,g,b);
+    return mn > 220 && (mx - mn) < 32;
+  };
+
+  /** 从四边泛洪，返回掩码 */
+  const flood = (test, seedFrom) => {
+    const m = new Uint8Array(w * h);
+    const st = [];
+    const seed = k => { if(!m[k] && test(k*4)){ m[k]=1; st.push(k); } };
+    if(seedFrom){
+      for(let k=0;k<w*h;k++) if(seedFrom[k]){
+        const cx=k%w, cy=(k/w)|0;
+        if(cx>0) seed(k-1); if(cx<w-1) seed(k+1);
+        if(cy>0) seed(k-w); if(cy<h-1) seed(k+w);
+      }
+    } else {
+      for (let i=0;i<w;i++){ seed(i); seed((h-1)*w+i); }
+      for (let j=0;j<h;j++){ seed(j*w); seed(j*w+w-1); }
+    }
+    while(st.length){
+      const k = st.pop(), cx = k%w, cy = (k/w)|0;
+      if(cx>0) seed(k-1);
+      if(cx<w-1) seed(k+1);
+      if(cy>0) seed(k-w);
+      if(cy<h-1) seed(k+w);
+    }
+    return m;
+  };
+
+  let bg = flood(isBgColor, null);
+  let deskew = 0;
+
+  // 拍照场景：背景不是白的，纸上还留着大片白色边 → 沿背景边界继续吃近白像素
+  if(!nearWhite){
+    deskew = pageAngle(bg, w, h);        // 先用“纸”的轮廓估出倾角
+    const extra = flood(isPaperWhite, bg);
+    for(let i=0;i<bg.length;i++) if(extra[i]) bg[i]=1;
+  }
+
+  // 统计被判定为背景的比例，异常小说明没找到背景，放弃抠图
+  let bgCount = 0;
+  for (let i = 0; i < bg.length; i++) bgCount += bg[i];
+  const bgRatio = bgCount / bg.length;
+  cutInfo = {
+    ok: bgRatio > 0.02 && bgRatio < 0.92,
+    mode: nearWhite ? 'white' : 'photo',
+    ratio: bgRatio, tol, deskew,
+  };
+  S.cutInfo = cutInfo;
+
+  if (bgRatio > 0.02 && bgRatio < 0.92) {
+    // 边缘羽化：紧邻背景的一圈半透明，再外一圈轻微透明
+    const alpha = new Float32Array(w * h);
+    for (let i = 0; i < w * h; i++) alpha[i] = bg[i] ? 0 : 1;
+    for (let pass = 0; pass < 2; pass++) {
+      const next = Float32Array.from(alpha);
+      for (let cy = 1; cy < h - 1; cy++) {
+        for (let cx = 1; cx < w - 1; cx++) {
+          const i = cy * w + cx;
+          if (bg[i]) continue;
+          const nb = Math.min(alpha[i - 1], alpha[i + 1], alpha[i - w], alpha[i + w]);
+          if (nb < 0.98) next[i] = Math.max(nb, pass === 0 ? 0.45 : 0.78);
+        }
+      }
+      alpha.set(next);
+    }
+    for (let i = 0; i < w * h; i++) {
+      p[i * 4 + 3] = Math.round(255 * alpha[i]);
+    }
+    x.putImageData(id, 0, 0);
+    const out = deskew ? rotateCanvas(c, deskew) : c;
+    trim(out);
+    return out;
+  }
+  return c;
+}
+
+function trim(c){
+  const x=c.getContext('2d',{willReadFrequently:true});
+  const w=c.width,h=c.height,d=x.getImageData(0,0,w,h).data;
+  let x0=w,y0=h,x1=0,y1=0;
+  for(let j=0;j<h;j++)for(let i=0;i<w;i++){
+    if(d[(j*w+i)*4+3]>10){
+      if(i<x0)x0=i; if(i>x1)x1=i; if(j<y0)y0=j; if(j>y1)y1=j;
+    }
+  }
+  if(x1<=x0||y1<=y0) return;
+  const pad=3;
+  x0=Math.max(0,x0-pad); y0=Math.max(0,y0-pad);
+  x1=Math.min(w-1,x1+pad); y1=Math.min(h-1,y1+pad);
+  const tw=x1-x0+1, th=y1-y0+1;
+  const o=document.createElement('canvas'); o.width=tw; o.height=th;
+  o.getContext('2d').drawImage(c,x0,y0,tw,th,0,0,tw,th);
+  c.width=tw; c.height=th;
+  c.getContext('2d').drawImage(o,0,0);
+
+  // 主体若只占极小区域（多半抠坏了），整体保留
+  const area=(tw*th)/(w*h);
+  if(area < 0.06) return;
+}
+
+/* 自动判断手绘是「全身款」还是「上半身款」，不用孩子/老师选任何东西：
+   - 裙摆、袍摆越往下越宽（喇叭形轮廓）→ 全身款（连衣裙/长袍）
+   - 上下差不多宽、最宽处横在顶部（摊开的袖子）→ 上半身款
+   - 整张画又长又窄（竖着画的长袍）→ 也按全身款
+   只看缩小版的透明轮廓，几毫秒就算完。抠图失败（没有透明通道）时
+   退化为按宽高比：窄长的算全身，其余算上衣。 */
+/** 只保留主体色块：去掉角落水印、飘落的杂点等与衣服不相连的小块。
+ *  豆包等 AI 生成的参考图右下角带「豆包AI生成」水印，抠图后残留会
+ *  随参考图发给模型，甚至被印到衣服上。按连通域面积过滤：
+ *  小于主体 5% 的块一律清成透明。 */
+function keepMainBlob(c){
+  try{
+    const w=c.width, h=c.height;
+    if(!w || !h) return c;
+    const x=c.getContext('2d',{willReadFrequently:true});
+    const id=x.getImageData(0,0,w,h), d=id.data;
+    const lbl=new Int32Array(w*h);
+    const stack=new Int32Array(w*h);
+    const sizes=[0]; let nid=0;
+    for(let p0=0;p0<w*h;p0++){
+      if(lbl[p0] || d[p0*4+3]<=40) continue;
+      nid++;
+      let sp=0, size=0;
+      stack[sp++]=p0; lbl[p0]=nid;
+      while(sp>0){
+        const p=stack[--sp]; size++;
+        const i=p%w, j=(p-i)/w;
+        if(i>0 && !lbl[p-1] && d[(p-1)*4+3]>40){ lbl[p-1]=nid; stack[sp++]=p-1; }
+        if(i<w-1 && !lbl[p+1] && d[(p+1)*4+3]>40){ lbl[p+1]=nid; stack[sp++]=p+1; }
+        if(j>0 && !lbl[p-w] && d[(p-w)*4+3]>40){ lbl[p-w]=nid; stack[sp++]=p-w; }
+        if(j<h-1 && !lbl[p+w] && d[(p+w)*4+3]>40){ lbl[p+w]=nid; stack[sp++]=p+w; }
+      }
+      sizes.push(size);
+    }
+    let best=0; for(let k=1;k<sizes.length;k++) if(sizes[k]>best) best=sizes[k];
+    const cut=best*0.05;
+    let changed=false;
+    for(let p=0;p<w*h;p++){
+      const L=lbl[p];
+      if(L && sizes[L]<cut){ d[p*4+3]=0; changed=true; }
+    }
+    if(changed) x.putImageData(id,0,0);
+    return c;
+  }catch(_){ return c; }
+}
+
+/** 终极方案：把手绘裙参考图重绘成「写实平铺衣服照片」。
+ *  10 件范例穿起来真实的原因：它们本来就是照片——有布料光影和褶皱，
+ *  模型照着复制出来的就是真衣服。这里给拉长后的裙图补上同样质感：
+ *  影棚浅灰背景 + 地面投影 + 侧边压暗 + 中央高光 + 柔和竖向褶皱。
+ *  光影只作用在衣服不透明区域（单独图层 source-atop），背景不受影响。 */
+function makeDressPhoto(src){
+  try{
+    const W = 640, H = Math.max(600, Math.round(W * src.height / Math.max(1, src.width)));
+    const margin = Math.round(W*0.06);
+    const dw = W - margin*2, dh = H - margin*2;
+    const c = document.createElement('canvas'); c.width=W; c.height=H;
+    const x = c.getContext('2d');
+    // 影棚浅灰背景
+    const bg = x.createLinearGradient(0,0,0,H);
+    bg.addColorStop(0,'#f4f2ee'); bg.addColorStop(0.72,'#eceae5'); bg.addColorStop(1,'#e1ded8');
+    x.fillStyle=bg; x.fillRect(0,0,W,H);
+    // 地面软投影（多层椭圆叠加模拟模糊）
+    for(let k=0;k<6;k++){
+      x.beginPath();
+      x.ellipse(W/2, H-margin*0.52, dw*(0.40+k*0.014), H*0.011*(1+k*0.4), 0, 0, Math.PI*2);
+      x.fillStyle='rgba(90,78,66,0.045)';
+      x.fill();
+    }
+    // 衣服单独图层
+    const dc = document.createElement('canvas'); dc.width=W; dc.height=H;
+    const dx = dc.getContext('2d');
+    dx.drawImage(src, margin, Math.round(margin*0.7), dw, dh);
+    dx.globalCompositeOperation = 'source-atop';
+    // ① 侧边压暗（圆柱体积感）
+    const side = dx.createLinearGradient(0,0,W,0);
+    side.addColorStop(0,'rgba(70,58,48,0.28)');
+    side.addColorStop(0.16,'rgba(70,58,48,0.10)');
+    side.addColorStop(0.42,'rgba(70,58,48,0)');
+    side.addColorStop(0.58,'rgba(70,58,48,0)');
+    side.addColorStop(0.84,'rgba(70,58,48,0.10)');
+    side.addColorStop(1,'rgba(70,58,48,0.28)');
+    dx.fillStyle=side; dx.fillRect(0,0,W,H);
+    // ② 顶光：上亮下微暗
+    const vert = dx.createLinearGradient(0,0,0,H);
+    vert.addColorStop(0,'rgba(255,255,255,0.10)');
+    vert.addColorStop(0.45,'rgba(255,255,255,0)');
+    vert.addColorStop(1,'rgba(50,40,34,0.16)');
+    dx.fillStyle=vert; dx.fillRect(0,0,W,H);
+    // ③ 竖向褶皱：宽描边多层叠加模拟模糊（ctx.filter 在部分 iOS 不支持）
+    for(const fr of [0.30, 0.44, 0.58, 0.72]){
+      const x0 = margin + dw*fr, amp = dw*0.014, mid = H*0.5;
+      for(let pass=0; pass<4; pass++){
+        dx.beginPath();
+        dx.moveTo(x0, margin*0.7);
+        dx.bezierCurveTo(x0+amp, mid*0.6, x0-amp, mid, x0+amp*0.6, H-margin);
+        dx.strokeStyle='rgba(75,60,50,0.035)';
+        dx.lineWidth = 6 + pass*7;
+        dx.stroke();
+      }
+    }
+    // ④ 中央高光带
+    const hl = dx.createLinearGradient(margin+dw*0.3,0,margin+dw*0.66,0);
+    hl.addColorStop(0,'rgba(255,255,255,0)');
+    hl.addColorStop(0.5,'rgba(255,255,255,0.12)');
+    hl.addColorStop(1,'rgba(255,255,255,0)');
+    dx.fillStyle=hl; dx.fillRect(0,0,W,H);
+    dx.globalCompositeOperation = 'source-over';
+    x.drawImage(dc, 0, 0);
+    return c;
+  }catch(_){ return src; }
+}
+
+function classifyGarment(c){
+  try{
+    const w0=c.width, h0=c.height;
+    if(!w0 || !h0) return true;
+    const H=160, W=Math.max(8, Math.round(H*w0/h0));
+    const t=document.createElement('canvas'); t.width=W; t.height=H;
+    const x=t.getContext('2d',{willReadFrequently:true});
+    x.drawImage(c,0,0,W,H);
+    const d=x.getImageData(0,0,W,H).data;
+    const rowW=j=>{
+      let lo=-1,hi=-1;
+      for(let i=0;i<W;i++){ if(d[(j*W+i)*4+3]>50){ if(lo<0)lo=i; hi=i; } }
+      return lo<0?0:hi-lo+1;
+    };
+    const band=(a,b)=>{
+      let s=0,n=0;
+      for(let j=Math.round(a*H);j<Math.round(b*H);j+=2){ s+=rowW(j); n++; }
+      return n?s/n:0;
+    };
+    const topW=band(0.04,0.30), botW=band(0.70,0.97), midW=band(0.35,0.65);
+    const flare = topW>2 ? botW/topW : 1;
+    // 第六轮教训：小朋友画的裙子还会是球形/灯笼形——中间鼓出来、上下都窄，
+    // 喇叭形判断认不出。但球裙和带袖 T恤的「中段都宽」难分，最终判据是
+    // 「袖子悬崖」：上衣的袖子让 0.35~0.5H 很宽，袖子一结束宽度断崖式收窄
+    // 成扁平衣身（T恤实测断崖比 0.42）；球裙渐宽渐窄（约1.1）、A字裙
+    // 渐窄（约0.8），都没有断崖。
+    const prof=[]; for(let j=0;j<H;j++) prof.push(rowW(j));
+    let maxMid=0, lowSum=0, lowN=0;
+    for(let j=Math.round(H*0.35);j<Math.round(H*0.52);j++) if(prof[j]>maxMid) maxMid=prof[j];
+    for(let j=Math.round(H*0.55);j<Math.round(H*0.68);j+=2){ lowSum+=prof[j]; lowN++; }
+    const drop = (maxMid>0 && lowN) ? (lowSum/lowN)/maxMid : 1;
+    return flare > 1.3 || (midW > topW*1.15 && drop > 0.55) || (w0/h0) < 0.72;
+  }catch(_){ return true; }
+}
+
+async function handleFile(file, src='album'){
+  if(!file) return;
+  $('boot').classList.remove('gone');
+  $('bootT').textContent = src === 'cam' ? '正在处理刚拍的照片…' : '正在处理这张图片…';
+  $('bootS').textContent = '自动识别背景 · 去底 · 裁边';
+  await new Promise(r=>setTimeout(r,60));
+
+  try{
+    // iPhone 的 HEIC 在安卓/桌面 Chrome 上解不了码，先点名说清楚，别让它卡在遮罩里
+    if(/heic|heif/i.test(file.type) || /\.(heic|heif)$/i.test(file.name || ''))
+      throw new Error('HEIC');
+
+    const url = URL.createObjectURL(file);
+    let img;
+    try{
+      img = await new Promise((res,rej)=>{
+        const i = new Image();
+        i.onload = ()=>res(i);
+        i.onerror = ()=>rej(new Error('decode'));
+        i.src = url;
+      });
+    }finally{ URL.revokeObjectURL(url); }
+
+    // 自动抠图：白底、彩色背景（桌面/墙面）、自带透明通道，三种都能处理
+    cutInfo = { ok:false, mode:'none', ratio:0, tol:0 };
+    S.cutInfo = cutInfo;
+    let out = cutout(img);
+    out = keepMainBlob(out);                // 去水印/杂点：只留衣服主体
+
+    S.garmentFull = classifyGarment(out);   // 全身款 / 上半身款，自动判断
+    let ar0 = out.width / Math.max(1, out.height);
+
+    // 关键补强：模型的本能是「照着参考图复制」——范例款是写实平铺衣服，
+    // 复制出来就是真衣服；小朋友的画是平面贴纸，复制出来就是贴纸，
+    // 画多长它就贴多长，提示词压不住。
+    // 第五轮教训：整张图均匀拉伸没用——「围裙结构」的画（上身+腰带+小摆）
+    // 拉完还是围裙，模型照样画出短裙、还自作主张给补安全裤。正确做法：
+    // 按腰线拆开，上身保持原比例，只把腰线以下（裙摆）大幅拉长，
+    // 参考图结构变成「合身上衣 + 盖过大腿的长裙」，模型照着复制就是长裙。
+    const dressLike = S.garmentFull === true || ar0 < 0.85;
+    if(dressLike && ar0 > 0.55){
+      const W1 = out.width, H1 = out.height;
+      let waistY = Math.round(H1 * 0.4);          // 默认从 40% 高度分——裙摆要占大头
+      try{
+        // 自动找腰线：第七轮教训——旧逻辑在 30%~78% 大带里找最窄行，
+        // 没有收腰的画（轮廓是斜坡）会在带边缘误取，被钳到 0.7H，
+        // 裙摆只占 30%，参考图仍是短裙，模型照样做超短裙（d2/d3 实测翻车，
+        // d4 找到 0.43 真腰线就成功）。新逻辑：只在 0.30~0.55 找，
+        // 且必须是「坑不是斜坡」——往下 5% 要重新变宽才算真腰线。
+        const gx = out.getContext('2d',{willReadFrequently:true});
+        const gd = gx.getImageData(0, 0, W1, H1).data;
+        const rowW = j => { let n=0; for(let i=0;i<W1;i++) if(gd[(j*W1+i)*4+3]>40) n++; return n; };
+        let minW = W1+1, found = -1;
+        const ja = Math.round(H1*0.30), jb = Math.round(H1*0.55);
+        for(let j=ja;j<jb;j+=3){ const w=rowW(j); if(w<minW){ minW=w; found=j; } }
+        if(found > 0 && minW < W1*0.9){
+          const after = rowW(Math.min(H1-1, found + Math.round(H1*0.05)));
+          if(after > minW*1.06)                   // 是个「坑」：穿过后重新变宽
+            waistY = Math.max(Math.round(H1*0.35), Math.min(found, Math.round(H1*0.55)));
+        }
+      }catch(_){}
+      const H2 = Math.round(W1 / 0.55);            // 目标：完整长裙比例
+      const ext = document.createElement('canvas');
+      ext.width = W1; ext.height = H2;
+      const ec = ext.getContext('2d');
+      ec.drawImage(out, 0, 0, W1, waistY, 0, 0, W1, waistY);                  // 上身原比例
+      ec.drawImage(out, 0, waistY, W1, H1-waistY, 0, waistY, W1, H2-waistY); // 只拉裙摆
+
+      // 第八轮教训：轮廓「上宽下窄」的画（如鱼尾形彩虹裙）拉长后参考图仍是
+      // 紧身收窄形，模型照做紧身短裙+大腿裸露；成功案例（黄吊带裙）的裙摆
+      // 是外扩的。所以把腰线以下每一行的宽度钳到「腰宽×(1+0.18×进度)」——
+      // 窄于目标就水平放大到目标宽（居中），裙摆变成直筒/微 A 字，下摆必然宽。
+      try{
+        const W2 = W1, H3 = H2;
+        const fd = ec.getImageData(0, 0, W2, H3);
+        const dd = fd.data;
+        const rowSpan = j => { let lo=-1,hi=-1; for(let i=0;i<W2;i++){ if(dd[(j*W2+i)*4+3]>40){ if(lo<0)lo=i; hi=i; } } return [lo,hi]; };
+        const [wlo, whi] = rowSpan(Math.max(0, waistY-2));
+        const waistW = Math.max(8, whi-wlo+1);
+        for(let j=waistY; j<H3; j++){
+          const t = (j-waistY)/Math.max(1, H3-1-waistY);
+          const target = waistW*(1+0.18*t);
+          const [lo, hi] = rowSpan(j);
+          if(lo < 0) continue;
+          const cur = hi-lo+1;
+          if(cur >= target-1) continue;           // 本来就够宽，不动
+          if(cur < target*0.3) continue;          // 过窄（细带/缝隙），拉宽会出横条伪影
+          const tmp = new Uint8ClampedArray(dd.buffer, j*W2*4, W2*4);
+          const row = new Uint8ClampedArray(tmp); // 拷贝后再改写
+          const c0 = Math.round((W2-target)/2);
+          for(let i=0;i<W2;i++) dd[(j*W2+i)*4+3] = 0;   // 清空原行
+          for(let x=0;x<Math.round(target);x++){
+            const sx = lo + Math.min(cur-1, Math.round(x/Math.max(1,target-1)*(cur-1)));
+            const dp = j*W2 + Math.min(W2-1, c0+x);
+            dd[dp*4]=row[sx*4]; dd[dp*4+1]=row[sx*4+1]; dd[dp*4+2]=row[sx*4+2]; dd[dp*4+3]=row[sx*4+3];
+          }
+        }
+        ec.putImageData(fd, 0, 0);
+      }catch(_){}
+
+      out = ext;
+      ar0 = out.width / H2;
+      S.garmentFull = true;
+      setTimeout(()=>toast('已把裙摆加长：做成盖过大腿的长裙 ✓', 2200), 200);
+    }
+
+    S.garmentImg = img;
+    S.garmentCanvas = out;
+    S.garmentURL = out.toDataURL('image/png');
+    S.garmentAr = ar0;
+    // 终极方案：裙类画的参考图换成本地绘制的写实平铺照片（模型复制照片=真衣服）
+    S.garmentRef = dressLike ? makeDressPhoto(out) : null;
+    try{
+      window.__dbgGarment = { full:S.garmentFull, w:out.width, h:out.height, ref:!!S.garmentRef };
+      window.__dbgRef = S.garmentRef ? S.garmentRef.toDataURL('image/png') : null;
+    }catch(_){}
+
+    // 记住来源，换衣服时重新走同一条路径（相册不重开相机）
+    S.garmentSrc = src;
+    S.lookKey = '';           // 换成自己的画了，范例条上的勾要去掉
+    S.lookName = '';
+    S.lookPat = '';
+  }catch(e){
+    // 关键：出任何错都要把遮罩收掉，否则整页卡在「正在处理」，孩子只能刷新
+    $('boot').classList.add('gone');
+    console.warn('读图失败', e);
+    if(e && e.message === 'HEIC')
+      toast('这是 iPhone 的 HEIC 格式，安卓/电脑打不开。请改用 JPG 或 PNG，或在手机上先截个图再选', 5600);
+    else
+      toast('这张图打不开（可能已损坏或格式不支持），换一张 JPG / PNG 试试', 4600);
+    return;
+  }
+
+  $('thumb').src = S.garmentURL;
+  $('thumbWrap').classList.add('on');
+
+  $('boot').classList.add('gone');
+  // 去底提示先出，别盖掉随后可能出现的模型报错
+  if(!cutInfo.ok) toast('背景有点复杂，没抠干净——换张背景更简单的效果更好', 3000);
+  else if(cutInfo.mode === 'photo') toast('已自动抠掉背景 ✓', 1400);
+  else if(cutInfo.mode === 'alpha') toast('图片自带透明背景，已裁边 ✓', 1400);
+  else toast('已自动去底 ✓', 1400);
+
+  // 选好了先不自动开穿：让老师核对缩略图、让孩子站好位，点「穿上」才开始计时（省额度）
+  cta.textContent = '✨ 穿上';
+  cta.classList.remove('wait','stop');
+  S.trying = false;
+  setBrand(homeBrand(), true);
+  updateModeHint();
+  prewarmXmax();
+  setTimeout(()=>{
+    if(!S.live && !S.trying && S.garmentCanvas) toast('站远一点，让上半身入镜，再点「✨ 穿上」', 3000);
+  }, 1600);
+}
+
+/* =====================================================================
+   七、开始 / 结束
+   ===================================================================== */
+cta.addEventListener('click', ()=>{
+  if(S.connecting) return;          // 建会话期间连点会开出第二个会话，双倍计费
+  if(!S.garmentCanvas){ openPick(); return; }
+  if(S.trying || S.live){ stopTryOn(); return; }
+  // 要点「穿上」了：先把麦克风权限要到，和连模型并行，录像开头才不会缺声音
+  requestMic();
+  startTryOn();
+});
+// 点缩略图可以换一张
+$('thumbWrap').addEventListener('click', ()=>{ if(!S.trying && !S.live && !S.connecting) openPick(); });
+
+async function startTryOn(){
+  if(!S.garmentCanvas) return;
+  cta.classList.remove('ready');
+
+  // 首次体验前先把隐私这件事说清楚（只在真的要把画面发到云端时问）
+  const live = isLive() && !S.liveDown;
+  // iPad + Edge：先给一次「换 Safari」的机会，每台设备只问一次
+  let edgeAsked = '';
+  try{ edgeAsked = localStorage.getItem('edge_warned') || ''; }catch(_){}
+  if(live && iosEdge() && !edgeAsked){
+    try{ localStorage.setItem('edge_warned','1'); }catch(_){}
+    showEdgeTip(); return;
+  }
+  if(live && !privacyAccepted()){ showPrivacy(); return; }
+
+  // 每日次数上限：链接外传时兜住额度，别让人无限烧
+  if(live && readStat().n >= CONFIG.dailyLimit){ openLimit('count'); return; }
+  // 秒数上限：切到 30/60 秒后，光按次数算挡不住（60 秒 × 30 次 = 半小时）
+  if(live && readStat().s >= CONFIG.dailyMaxSeconds){ openLimit('secs'); return; }
+
+  // 摄像头之前没打开：顺手再试一次，成功就继续，失败就回到提示面板
+  if(S.camFail){
+    try{
+      await startCamera(S.facing);
+      S.camFail = false;
+      $('camErr').classList.remove('on');
+      setBrand(homeBrand(), true);
+    }catch(e){ showCamErr(e); return; }
+  }
+
+  // 填了 Key → 走云端真模型；没 Key 或上一次模型失败 → 本地贴合演示
+  if(live){ await startLiveTryOn(); return; }
+
+  cta.classList.add('wait'); cta.textContent='正在穿上…';
+
+  {
+    // 之前用真模型时没加载姿态模型，这里按需补上
+    if(!S.poseReady && !S.landmarker) initPose();
+    await new Promise(r=>setTimeout(r,420));
+    S.trying = true;
+    S.smooth = null; S.lastPts = null;
+    lastGoodPose = performance.now(); guideShown = false;
+    $('guide').classList.add('on');
+    // 姿态模型可用时，由主循环根据「是否检测到身体」自动开关提示
+    if(!S.poseReady) setTimeout(()=>{ if(S.trying) $('guide').classList.remove('on'); }, 5000);
+    if(!rafId) loop();
+    cta.classList.remove('wait');
+    cta.textContent = '⏹ 结束';
+    cta.classList.add('stop');
+    $('shotBtn').classList.add('on');
+    $('dockTip').textContent = CONFIG.sessionSeconds + ' 秒后自动结束 · 双指可缩放 · 单指拖动';
+    startDockTips();
+    setBrand('已穿上 · 跟着身体走', true);
+    startSessionTimer();
+    startRecording();
+    return;
+  }
+}
+
+function stopTryOn(){
+  stopDockTips();
+  stopRecording();
+  if(S.live){ endLive(); return; }
+
+  S.trying=false;
+  stopSessionTimer();
+  ctx.clearRect(0,0,stage.clientWidth,stage.clientHeight);
+  $('guide').classList.remove('on');
+  $('shotBtn').classList.remove('on');
+  cta.textContent='✨ 穿上';
+  cta.classList.remove('stop','wait');
+  updateModeHint();
+  setBrand(homeBrand(), true);
+}
+
+/* =====================================================================
+   八、手势：双指缩放 / 单指拖动 / 双击复位
+   ===================================================================== */
+const pts = new Map();
+let gest = null, lastTap = 0;
+
+stage.addEventListener('pointerdown', e=>{
+  if(!S.trying) return;
+  if(e.target.closest('#dock') || e.target.closest('#top')) return;  // 别拦住按钮
+  pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  gest = { s:S.scaleMul, ox:S.offX, oy:S.offY, dist:0, mid:{x:0,y:0} };
+  snap();
+});
+stage.addEventListener('pointermove', e=>{
+  if(!S.trying || !pts.has(e.pointerId)) return;
+  pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(pts.size===1){
+    const p=[...pts.values()][0];
+    S.offX = gest.ox + (p.x-gest.mid.x);
+    S.offY = gest.oy + (p.y-gest.mid.y);
+  }else{
+    const {dist,mid}=fingerStats();
+    const r = gest.dist ? dist/gest.dist : 1;
+    S.scaleMul = clamp(gest.s*r, .45, 2.6);
+    S.offX = gest.ox + (mid.x-gest.mid.x);
+    S.offY = gest.oy + (mid.y-gest.mid.y);
+  }
+  e.preventDefault();
+},{passive:false});
+function up(e){
+  pts.delete(e.pointerId);
+  if(pts.size===0){
+    gest=null;
+    const now=Date.now();
+    if(now-lastTap<280){ S.scaleMul=1; S.offX=0; S.offY=0; toast('已复位'); }
+    lastTap=now;
+  } else snap();
+}
+stage.addEventListener('pointerup', up);
+stage.addEventListener('pointercancel', up);
+
+function snap(){
+  if(!gest) return;
+  if(pts.size>=2){
+    const {dist,mid}=fingerStats();
+    gest.dist=dist; gest.mid=mid;
+    gest.s=S.scaleMul; gest.ox=S.offX; gest.oy=S.offY;
+  }else if(pts.size===1){
+    const p=[...pts.values()][0];
+    gest.mid={x:p.x,y:p.y};
+    gest.ox=S.offX; gest.oy=S.offY;
+  }
+}
+function fingerStats(){
+  const [a,b]=[...pts.values()];
+  return { dist:Math.hypot(a.x-b.x,a.y-b.y), mid:{x:(a.x+b.x)/2,y:(a.y+b.y)/2} };
+}
+stage.addEventListener('wheel', e=>{
+  if(!S.trying) return;
+  S.scaleMul = clamp(S.scaleMul*(e.deltaY>0?.945:1.058), .45, 2.6);
+  e.preventDefault();
+},{passive:false});
+
+/* =====================================================================
+   九、拍照（视频 + 衣服层合成，无变形）
+   —— captureFrame 同时给「◎ 保存」和「结束时自动留存」用
+   ===================================================================== */
+/** 把「摄像头画面 + 衣服层」按屏幕所见画到指定画布上（截图与录像共用） */
+function drawComposite(o, W, H){
+  const vw=cam.videoWidth, vh=cam.videoHeight;
+  if(vw&&vh){
+    const s=Math.max(W/vw,H/vh);          // cover：只裁切，不拉伸
+    const dw=vw*s, dh=vh*s, dx=(W-dw)/2, dy=(H-dh)/2;
+    o.save();
+    if(S.mirrored){ o.translate(W,0); o.scale(-1,1); }
+    o.drawImage(cam,dx,dy,dw,dh);
+    o.restore();
+  }else{
+    o.fillStyle='#111'; o.fillRect(0,0,W,H);
+  }
+  // 本地演示模式才有衣服层；真模型模式下衣服已经在视频里了
+  if(S.trying) o.drawImage(canvas,0,0,W,H);
+}
+
+function captureFrame(){
+  const W=stage.clientWidth, H=stage.clientHeight;
+  const out=document.createElement('canvas');
+  out.width=W*2; out.height=H*2;
+  const o=out.getContext('2d');
+  o.scale(2,2);
+  drawComposite(o, W, H);
+
+  o.font='600 13px -apple-system,"PingFang SC",sans-serif';
+  o.fillStyle='rgba(255,255,255,.9)';
+  o.textAlign='right';
+  o.fillText(homeBrand(), W-18, H-22);
+  // 品牌水印：右下角「锦衣小裁缝」半透明底衬，分享出去也认得是本应用
+  const wm = '锦衣小裁缝';
+  o.font = '600 14px "Kaiti SC","STKaiti","PingFang SC",sans-serif';
+  const tw = o.measureText(wm).width;
+  o.textAlign = 'right';
+  o.fillStyle = 'rgba(0,0,0,.28)';
+  o.beginPath();
+  if(o.roundRect){ o.roundRect(W-tw-28, H-48, tw+16, 30, 15); }
+  else { o.rect(W-tw-28, H-48, tw+16, 30); }
+  o.fill();
+  o.fillStyle = 'rgba(255,255,255,.92)';
+  o.fillText(wm, W-20, H-27);
+  return out;
+}
+
+/** 文件名带上款式和时间，课后按孩子/款式整理照片不用逐张辨认 */
+function stamp(){
+  const d=new Date(), p=n=>String(n).padStart(2,'0');
+  return d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+'-'+p(d.getHours())+p(d.getMinutes());
+}
+function shotName(ext){ return (S.lookName ? '试穿-'+S.lookName : '试穿-我的画')+'-'+stamp()+'.'+(ext||'png'); }
+
+/** 保存：优先走系统分享（iPad 上才能存进相册），不支持再退回下载 */
+async function saveBlobAs(blob, name, mime){
+  if(!blob){ toast('没能生成文件，再试一次', 2400); return false; }
+  const file = new File([blob], name, { type: mime || blob.type || 'application/octet-stream' });
+  if(navigator.canShare && navigator.canShare({ files:[file] })){
+    try{
+      await navigator.share({ files:[file], title:homeBrand() });
+      toast('已打开分享面板，存到相册即可 ✓', 3000);
+      return true;
+    }catch(e){
+      if(e && e.name === 'AbortError') return false;   // 用户自己取消，不算失败
+    }
+  }
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=name;
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 9000);
+  toast('已保存 ✓（iPad 上如果没反应，长按也可存）', 3200);
+  return true;
+}
+async function saveCanvas(c){
+  const blob = await new Promise(r=>c.toBlob(r,'image/png'));
+  await saveBlobAs(blob, shotName('png'), 'image/png');
+}
+
+/* 拍照：快门闪光一下再保存，孩子能明确感知「拍到啦」。
+   iPad 上保存走系统分享面板（存相册），其余平台直接下载。 */
+const flashEl = $('flash');
+function shutterFlash(){
+  if(!flashEl) return;
+  flashEl.classList.add('on');
+  requestAnimationFrame(()=>requestAnimationFrame(()=>flashEl.classList.remove('on')));
+}
+$('shotBtn').addEventListener('click', ()=>{
+  shutterFlash();
+  saveCanvas(captureFrame());
+});
+
+/* ---------- 把这段试穿录成视频（含声音） ----------
+   画面：把屏幕所见的合成画面画到隐藏 canvas，captureStream 成视频流。
+   声音：单独取一路麦克风，作为音轨并进这个流（只录不播，所以不会啸叫）。
+   全部在本机合成与编码，不经过云端、不额外花额度；设备不支持时自动不显示入口。 */
+const rec = { on:false, stopping:false, mr:null, chunks:[], canvas:null, ctx:null, timer:null,
+              blob:null, mime:'', seq:0, hasAudio:false, url:'', endLeft:0 };
+
+/* --- 麦克风：可关，被拒就静默降级成无声录像 --- */
+const MIC_KEY = 'tryon_mic';
+let micStream = null, micDenied = false, micPending = null;
+
+function micOn(){ try{ return localStorage.getItem(MIC_KEY) !== 'off'; }catch(_){ return true; } }
+/** 首次录带声音的像，轻声告诉一句：录像会带上你的声音，⚙ 里能关。只提醒一次。 */
+const MIC_TIP = 'tryon_mic_tip';
+function maybeMicTip(){
+  if(!micOn()) return;
+  try{ if(localStorage.getItem(MIC_TIP)) return; localStorage.setItem(MIC_TIP,'1'); }catch(_){}
+  setTimeout(()=>toast('录像会带上你的声音，想安静录就去 ⚙ 里关掉', 3600), 600);
+}
+function paintMicSwitch(){
+  const b = $('micSwitch');
+  if(!b) return;
+  b.classList.toggle('on', micOn());
+  b.textContent = micOn() ? '开启' : '关闭';
+}
+function setMic(on){
+  try{ localStorage.setItem(MIC_KEY, on ? 'on' : 'off'); }catch(_){}
+  paintMicSwitch();
+  if(!on) releaseMic();
+  else if(!micDenied) requestMic();      // 当场要一次权限，别等开录才发现被拒
+}
+
+/** 提前取麦克风（点「穿上」时就调）：权限框和连模型同时出现，不浪费孩子时间 */
+function requestMic(){
+  if(!micOn() || micDenied) return Promise.resolve(null);
+  if(micStream && micStream.getAudioTracks().some(t=>t.readyState === 'live')) return Promise.resolve(micStream);
+  if(micPending) return micPending;
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+    micDenied = true; return Promise.resolve(null);
+  }
+  micPending = navigator.mediaDevices.getUserMedia({
+      audio:{ echoCancellation:true, noiseSuppression:true, autoGainControl:true }
+    }).then(st=>{
+      micStream = st; micPending = null; return st;
+    }).catch(()=>{
+      micDenied = true; micPending = null;   // 被拒就不再骚扰，本次一律无声
+      return null;
+    });
+  return micPending;
+}
+function releaseMic(){
+  if(micStream){
+    micStream.getAudioTracks().forEach(t=>{ try{ t.stop(); }catch(_){} });
+    micStream = null;
+  }
+  micPending = null;
+}
+
+function recMime(){
+  if(!window.MediaRecorder) return '';
+  const list = ['video/mp4;codecs=avc1,mp4a.40.2','video/mp4;codecs=avc1','video/mp4',
+                'video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm'];
+  for(const m of list){ try{ if(MediaRecorder.isTypeSupported(m)) return m; }catch(_){} }
+  return '';
+}
+function recSupported(){
+  return !!recMime() && !!(window.HTMLCanvasElement && HTMLCanvasElement.prototype.captureStream);
+}
+
+async function startRecording(){
+  stopRecording(true);                  // 清掉上一段，结果页不会拿到上一位孩子的视频
+  rec.blob = null; rec.hasAudio = false;
+  if(rec.url){ URL.revokeObjectURL(rec.url); rec.url=''; }
+  if(!recSupported()) return;
+  const W = stage.clientWidth, H = stage.clientHeight;
+  if(!W || !H) return;
+  const k = Math.min(1, 600 / W);       // 限制分辨率，平板上编码才不会卡
+  const c = document.createElement('canvas');
+  c.width = Math.round(W*k); c.height = Math.round(H*k);
+  const o = c.getContext('2d');
+  rec.canvas = c; rec.ctx = o;
+  rec.chunks = [];
+
+  let stream;
+  try{ stream = c.captureStream(12); }catch(_){ return; }
+  const seq = ++rec.seq;
+
+  // 先把麦克风并进来再开录，视频开头的声音才不会缺一截
+  const mic = await requestMic();
+  if(rec.seq !== seq) return;           // 已经被新一段取代（麦克风留给那一段用）
+  if(mic){
+    const at = mic.getAudioTracks()[0];
+    if(at && at.readyState === 'live'){
+      try{ stream.addTrack(at); rec.hasAudio = true; }catch(_){}
+    }
+  }
+
+  const mime = recMime();
+  let mr;
+  const opts = { mimeType:mime, videoBitsPerSecond:1600000 };
+  if(rec.hasAudio) opts.audioBitsPerSecond = 64000;
+  try{ mr = new MediaRecorder(stream, opts); }
+  catch(_){ try{ mr = new MediaRecorder(stream); }catch(__){ releaseMic(); return; } }
+  rec.mr = mr; rec.mime = mr.mimeType || mime;
+
+  mr.ondataavailable = e=>{ if(e.data && e.data.size) rec.chunks.push(e.data); };
+  mr.onstop = ()=>{
+    if(rec.mr !== mr || rec.seq !== seq) return;   // 已经被新一段取代
+    rec.on = false; rec.stopping = false;
+    if(rec.chunks.length){
+      rec.blob = new Blob(rec.chunks, { type:(rec.mime||'video/mp4').split(';')[0] });
+    }
+    releaseMic();                                 // 录完就关麦，系统不再亮麦克风图标
+    paintVideoBtn();
+    paintRecBadge();
+  };
+
+  rec.on = true; rec.stopping = false;
+  drawRecFrame();                       // 先画一帧，避免开头是黑帧
+  rec.timer = setInterval(drawRecFrame, 90);   // 约 11fps，主线程更轻
+  try{ mr.start(500); }
+  catch(_){ rec.on=false; clearInterval(rec.timer); rec.timer=null; releaseMic(); return; }
+  paintRecBadge();
+  if(rec.hasAudio) maybeMicTip();       // 首次带声音录像，轻声说一句
+}
+
+/** 画一帧录制画面：合成层 + 倒计时角标 + 右下角名字 */
+function drawRecFrame(){
+  if(!rec.on || !rec.ctx || !rec.canvas) return;
+  if(cam.readyState < 2 || !cam.videoWidth) return;
+  const c = rec.canvas, o = rec.ctx;
+  drawComposite(o, c.width, c.height);
+  drawRecHud(o, c.width, c.height);
+}
+
+function drawRecHud(o, W, H){
+  const fs = Math.max(11, Math.round(W/32));
+  o.save();
+  o.textAlign='right';
+  o.font='600 '+fs+'px -apple-system,"PingFang SC",sans-serif';
+  o.fillStyle='rgba(255,255,255,.85)';
+  o.fillText(homeBrand(), W-12, H-14);
+
+  // 左上角：红点 + 剩余秒数，回看视频时知道这是整段体验
+  const left = sess.running ? Math.max(0, Math.ceil(sessionLeft())) : 0;
+  const txt = left > 0 ? (left + 's') : '完';
+  o.textAlign='left';
+  const padX = 9, r = Math.round(fs*0.36);
+  const tw = o.measureText(txt).width;
+  const bw = padX*2 + r*2 + 5 + tw;
+  const bh = fs + padX*1.3;
+  const x0 = 12, y0 = 12;
+  o.fillStyle='rgba(0,0,0,.42)';
+  if(o.roundRect){ o.beginPath(); o.roundRect(x0, y0, bw, bh, bh/2); o.fill(); }
+  else o.fillRect(x0, y0, bw, bh);
+  o.fillStyle='#ff4d4d';
+  o.beginPath();
+  o.arc(x0+padX+r, y0+bh/2, r, 0, Math.PI*2);
+  o.fill();
+  o.fillStyle='rgba(255,255,255,.95)';
+  o.font='700 '+fs+'px -apple-system,"PingFang SC",sans-serif';
+  o.textBaseline='middle';
+  o.fillText(txt, x0+padX+r*2+5, y0+bh/2+0.5);
+  o.restore();
+}
+
+/** 片尾：定格 1.5 秒写下款式名，视频结尾不像突然断掉 */
+function drawEndCard(){
+  const c = rec.canvas, o = rec.ctx;
+  if(!c || !o) return;
+  drawComposite(o, c.width, c.height);
+  rec.endN = (rec.endN || 0) + 1;
+  o.save();
+  o.fillStyle='rgba(18,14,11,.62)';
+  o.fillRect(0, 0, c.width, c.height);
+  o.textAlign='center';
+  o.textBaseline='alphabetic';
+  o.fillStyle='#fff';
+  o.font='800 '+Math.round(c.width/11)+'px -apple-system,"PingFang SC",sans-serif';
+  o.fillText(S.lookName || '我的画', c.width/2, c.height*0.45);
+  if(S.lookPat){
+    o.fillStyle='rgba(255,190,140,.95)';
+    o.font='700 '+Math.round(c.width/26)+'px -apple-system,"PingFang SC",sans-serif';
+    o.fillText(S.lookPat, c.width/2, c.height*0.45 + Math.round(c.width/11)*0.95);
+  }
+  o.fillStyle='rgba(255,255,255,.62)';
+  o.font='600 '+Math.round(c.width/34)+'px "Kaiti SC","STKaiti","PingFang SC",sans-serif';
+  o.fillText('锦衣小裁缝 · ' + durLabel(CONFIG.sessionSeconds), c.width/2, c.height*0.56);
+  o.fillStyle='rgba(247,215,154,.88)';
+  o.font='600 '+Math.round(c.width/30)+'px "Kaiti SC","STKaiti","PingFang SC",sans-serif';
+  o.fillText('小手一裁 · 宋锦上身', c.width/2, c.height*0.56 + Math.round(c.width/22));
+  o.restore();
+  // 微扰：画面完全静止时浏览器会跳过相同帧，片尾就会整段丢失。
+  // 角落 1px 的极低透明度交替，肉眼完全看不出，但编码器知道这是新帧。
+  o.fillStyle = (rec.endN % 2) ? 'rgba(255,255,255,.012)' : 'rgba(0,0,0,.012)';
+  o.fillRect(0, 0, 1, 1);
+}
+
+function stopRecording(discard){
+  if(rec.timer){ clearInterval(rec.timer); rec.timer = null; }
+  const mr = rec.mr;
+  const canEnd = !discard && rec.on && mr && mr.state === 'recording' && rec.canvas && rec.ctx;
+  rec.on = false;
+
+  if(canEnd){
+    // 先定格写片尾，再停：这段额外录进视频里，孩子看到结尾有自己的衣服名字
+    rec.stopping = true;
+    rec.endN = 0;
+    drawEndCard();
+    rec.timer = setInterval(drawEndCard, 110);   // 保持画面在推帧，Safari 才不会断流
+    paintRecBadge();
+    setTimeout(()=>{
+      if(rec.timer){ clearInterval(rec.timer); rec.timer = null; }
+      try{ mr.requestData(); }catch(_){}
+      try{ mr.stop(); }catch(_){}
+    }, 1500);
+    return;
+  }
+
+  if(mr && mr.state !== 'inactive'){
+    if(discard){ mr.onstop = null; mr.ondataavailable = null; }  // 丢弃：不让旧回调抢新 chunks
+    else rec.stopping = true;                                     // 保留：结果页先占位，别等会儿才跳出来
+    try{ mr.requestData(); }catch(_){}
+    try{ mr.stop(); }catch(_){}
+  }
+  if(discard){
+    rec.chunks = []; rec.blob = null; rec.mr = null;
+    rec.stopping = false; rec.hasAudio = false;
+    releaseMic();
+  }
+  paintRecBadge();
+}
+
+/** 屏幕右上角的「● 录像中 12s」小标：老师知道正在录，也和孩子提示一下 */
+function paintRecBadge(){
+  const el = $('recBadge');
+  if(!el) return;
+  const show = rec.on || rec.stopping;
+  el.classList.toggle('on', show);
+  if(!show) return;
+  const left = sess.running ? Math.max(0, Math.ceil(sessionLeft())) : 0;
+  $('recTxt').textContent = rec.stopping ? '收尾' : (left > 0 ? left + 's' : '收尾');
+}
+
+function paintVideoBtn(){
+  const btn = $('resVideo');
+  if(!btn) return;
+  if(rec.blob){
+    btn.style.display='block'; btn.disabled=false;
+    btn.textContent = '保存这段视频（' + durLabel(CONFIG.sessionSeconds)
+                    + (rec.hasAudio ? ' · 带声音' : ' · 无声') + '）';
+  }else if(rec.stopping || (rec.mr && rec.mr.state !== 'inactive')){
+    btn.style.display='block'; btn.disabled=true; btn.textContent='正在生成视频…';
+  }else{
+    btn.style.display='none';
+  }
+  paintPreview();
+}
+
+/** 结果页直接能看：录好了就把图片换成视频，确认好看再保存 */
+function paintPreview(){
+  const box = $('resVideoBox'), v = $('resPlayer');
+  if(!box || !v) return;
+  if(rec.blob){
+    if(rec.url) URL.revokeObjectURL(rec.url);
+    rec.url = URL.createObjectURL(rec.blob);
+    v.src = rec.url;
+    try{ v.currentTime = 0; v.play().catch(()=>{}); }catch(_){}
+    box.classList.add('on');
+    $('resultImg').classList.add('hide');
+    $('resVideoTag').textContent = rec.hasAudio ? '带声音 · 循环播放' : '无声 · 循环播放';
+  }else{
+    box.classList.remove('on');
+    $('resultImg').classList.remove('hide');
+  }
+}
+
+/* ---------- 结束时把最后一帧留下来 ---------- */
+let lastShot = null, resultURL = '';
+function showResult(canvasEl){
+  lastShot = canvasEl;
+  paintVideoBtn();
+  clearToast();
+  $('quota').classList.remove('on');
+  $('resSub').textContent = CONFIG.sessionSeconds + ' 秒体验已结束';
+  canvasEl.toBlob(b=>{
+    if(!b) return;
+    if(resultURL) URL.revokeObjectURL(resultURL);
+    resultURL = URL.createObjectURL(b);
+    $('resultImg').src = resultURL;
+    $('result').classList.add('on');
+    stage.classList.add('resultOn');
+  },'image/png');
+}
+function hideResult(){
+  $('result').classList.remove('on');
+  stage.classList.remove('resultOn');
+  const v = $('resPlayer');
+  if(v){ try{ v.pause(); }catch(_){} }
+  paintFrame();
+}
+$('resSave').addEventListener('click', async ()=>{
+  if(!lastShot) return;
+  await saveCanvas(lastShot);
+  setTimeout(hideResult, 500);   // 存完自动收起，接着下一个孩子
+});
+$('resClose').addEventListener('click', hideResult);
+$('resChange').addEventListener('click', ()=>{ hideResult(); openPick(); });
+$('resVideo').addEventListener('click', async ()=>{
+  if(!rec.blob) return;
+  const ext = (rec.mime||'').indexOf('mp4') >= 0 ? 'mp4' : 'webm';
+  await saveBlobAs(rec.blob, shotName(ext), rec.mime);
+});
+$('resAgain').addEventListener('click', ()=>{
+  hideResult();
+  startTryOn();
+});
+
+
+/* =====================================================================
+   十、真模型：Xmax X2.1 实时换装
+   —— SDK 已本地打包到 vendor/xmax-web.js（官方 @xmaxai/web-sdk），运行时不依赖外网
+   —— Key 只存本机 localStorage，请求直接从浏览器发往 api.xmax.ai
+   ===================================================================== */
+const KEY_STORE = 'xmax_api_key';
+const KEY_OFF = 'xmax_key_off';   // 老师主动「清除」过：无视内置 Key
+let xmaxMod = null, xmaxClient = null, xmaxRealtime = null;
+
+function getKey(){
+  try{
+    const own = localStorage.getItem(KEY_STORE);
+    if(own) return own;                              // 本机填的优先
+    if(localStorage.getItem(KEY_OFF) === '1') return ''; // 手动清过就别再塞回内置的
+  }catch(_){}
+  return CONFIG.builtinKey || '';
+}
+function saveKey(k){
+  try{
+    if(k){
+      localStorage.setItem(KEY_STORE, k);
+      localStorage.removeItem(KEY_OFF);
+    }else{
+      localStorage.removeItem(KEY_STORE);
+      localStorage.setItem(KEY_OFF, '1');            // 记住「我不要内置 Key」
+    }
+  }catch(_){}
+}
+// 这台设备强制走本机演示（iPad / 网络差的教室）：不联网、不花额度
+const FORCE_LOCAL = 'tryon_force_local';
+function forceLocal(){
+  try{ return localStorage.getItem(FORCE_LOCAL) === '1'; }catch(_){ return false; }
+}
+function setForceLocal(v){
+  try{ v ? localStorage.setItem(FORCE_LOCAL, '1') : localStorage.removeItem(FORCE_LOCAL); }catch(_){}
+}
+function offlineMode(){ return navigator.onLine === false; }
+const isLive = () => !!getKey() && !forceLocal() && !offlineMode();
+
+async function loadXmax(){
+  if(xmaxMod) return xmaxMod;
+  xmaxMod = await import('./vendor/xmax-web.js');
+  return xmaxMod;
+}
+
+/** 预热：只把 SDK 包先下下来，不连模型、不建会话、不花额度。
+ *  老师挑衣服 / 刚选好衣服时就开始下，点「穿上」时就只剩连模型这一步。 */
+let prewarming = false;
+function prewarmXmax(){
+  if(xmaxMod || prewarming) return;
+  if(!isLive() || S.liveDown) return;      // 本机演示 / 已降级：不必下这个包
+  prewarming = true;
+  const run = ()=>loadXmax().catch(()=>{ /* 预热失败无所谓，点穿上时会再试 */ })
+    .finally(()=>{ prewarming = false; });
+  if('requestIdleCallback' in window) requestIdleCallback(run, { timeout: 2500 });
+  else setTimeout(run, 700);
+}
+
+/** 把 SDK 抛出的错误翻译成老师看得懂的话 */
+function xmaxErrorText(e){
+  if(!e) return '未知错误';
+  const msg = e.message || String(e);
+  const code = e.code ? `[${e.code}] ` : '';
+  // 注意：token_error 是 RTC 房间令牌问题，不是 Key 失效，别混为一谈
+  if(/token_error|joinPreparedRoom/i.test(msg))
+    return code + '房间令牌签发失败（token_error）。常见原因：账号未开通实时模型、余额不足，或该 Key 只能在白名单域名下使用。';
+  if(/invalid.?api.?key|unauthor|401|403|api key.*(invalid|expired)/i.test(msg))
+    return code + 'API Key 无效或已过期，点右上角 ⚙ 重新填写';
+  if(/quota|balance|insufficient|credit|积分|余额|limit/i.test(msg))
+    return code + '额度不足，请到 Xmax 控制台充值（或换一个 Key）';
+  if(/camera|getUserMedia|NotAllowed|permission/i.test(msg))
+    return code + '摄像头打不开，检查浏览器权限';
+  return code + msg;
+}
+
+/* 打开/关闭设置面板 */
+window.openKeySheet = function(){
+  const s = $('sheet');
+  $('keyInput').value = getKey();
+  const bi = !!CONFIG.builtinKey;
+  $('keyNote').textContent = bi
+    ? '这台设备已经带好 Key，点「穿上」直接用云端模型；要换 Key 就粘贴新的覆盖它。'
+    : '填了 Key，衣服就由云端模型真正“穿”在身上；不填则用本地贴合演示。';
+  $('keyWarn').textContent = bi
+    ? '内置 Key 会随页面一起公开给拿到链接的人。只在课堂内部分发；用完后到 platform.xmaxai.com 重置这个 Key。'
+    : '还没有 Key？到 platform.xmaxai.com 注册，新账号送 600 积分（约 10 分钟试穿）。';
+  paintKeyUsage();
+  $('keyDiag').textContent = '环境：' + diagSummary() + '（点一下可复制）';
+  try{ paintModeSwitch(); }catch(_){}
+  clearToast();
+  s.classList.add('on');
+  setTimeout(()=>$('keyInput').focus(), 120);
+};$('btnKey').addEventListener('click', ()=>openKeySheet());
+
+// 老师点一下就能把这行环境信息复制出来发给我，比口述靠谱
+$('keyDiag').addEventListener('click', async ()=>{
+  const txt = diagSummary();
+  try{
+    await navigator.clipboard.writeText(txt);
+    toast('环境信息已复制 ✓', 1600);
+  }catch(_){
+    const r = document.createRange(); r.selectNodeContents($('keyDiag'));
+    const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r);
+    toast('长按选中后复制', 2200);
+  }
+});
+
+/* 设备模式开关：iPad 上老师一键切到本机演示，孩子只负责点「穿上」 */
+function paintModeSwitch(){
+  const on = forceLocal();
+  const b = $('modeSwitch');
+  b.textContent = on ? '已开启' : '关闭';
+  b.classList.toggle('on', on);
+}
+$('modeSwitch').addEventListener('click', async ()=>{
+  const next = !forceLocal();
+  setForceLocal(next);
+  paintModeSwitch();
+  S.liveDown = !next ? false : S.liveDown;
+  if(next){
+    if(S.live) await endLive();
+    initPose();                        // 本机演示需要姿态模型
+    toast('已切到本机演示：不联网、不花额度', 2600);
+  }else{
+    toast('已恢复云端模型', 2000);
+  }
+  updateModeHint();
+});
+$('keyEye').addEventListener('click', e=>{
+  e.stopPropagation();
+  const i = $('keyInput');
+  const show = i.type === 'password';
+  i.type = show ? 'text' : 'password';
+  $('keyEye').textContent = show ? '隐藏' : '显示';
+});
+$('sheet').addEventListener('click', e=>{ if(e.target.id === 'sheet') $('sheet').classList.remove('on'); });
+$('keySave').addEventListener('click', ()=>{
+  const v = $('keyInput').value.trim();
+  if(!v){ toast('先粘贴 API Key'); return; }
+  saveKey(v);
+  S.liveDown = false;   // 换了 Key，重新给真模型一次机会
+  $('sheet').classList.remove('on');
+  updateModeHint();
+  toast('已保存，点「穿上」就会用真模型 ✓', 2600);
+  // 正在演示贴合时保存了 Key → 直接切到真模型
+  if(S.live) restartLive();
+  else if(S.trying && S.garmentCanvas){ stopTryOn(); startLiveTryOn(); }
+});
+$('keyClear').addEventListener('click', ()=>{
+  saveKey('');
+  $('keyInput').value = '';
+  $('sheet').classList.remove('on');
+  updateModeHint();
+  if(S.live){ endLive(); }
+  toast('已清除，回到本地贴合演示');
+});
+
+/** 底栏提示随模式变化 */
+function updateModeHint(){
+  const live = isLive() && !S.liveDown;
+  if(!S.live){
+    // 窄屏放不下长句，换成短版，别让文案被截成省略号
+    const narrow = innerWidth < 430;
+    const hint = offlineMode()
+      ? (narrow ? '没连网 · 本机演示可用' : '没连网 · 范例图已存好，本机演示照常上课')
+      : live
+      ? (narrow ? '点「穿上」由模型生成' : '已接入 Xmax X2.1 · 点「穿上」由模型生成（' + CONFIG.sessionSeconds + ' 秒）')
+      : (forceLocal() ? '本机演示模式 · 点「穿上」马上穿（不联网）'
+        : (S.liveDown ? '点「穿上」，这次先用本地演示' : '点「穿上」，点缩略图可以换一张'));
+    $('dockTip').textContent = S.garmentCanvas ? hint : '10 件宋锦范例，或拍一张自己的画';
+  }
+  // 有图、没在穿 → 主按钮就是「开穿」，给它一点呼吸感
+  cta.classList.toggle('ready', !S.live && !S.trying && !!S.garmentCanvas);
+  paintFrame();
+}
+
+/** 预备态取景框：只在「选了衣服、还没开始」时出现，开始后立刻让位 */
+function paintFrame(){
+  const el = $('frame');
+  if(!el) return;
+  const busy = $('result').classList.contains('on')
+            || $('pick').classList.contains('on')
+            || $('privacy').classList.contains('on')
+            || $('quota').classList.contains('on')
+            || $('limit').classList.contains('on')
+            || $('fail').classList.contains('on');
+  const show = !!S.garmentCanvas && !S.trying && !S.live && !S.camFail && !busy;
+  el.classList.toggle('on', show);
+  if(show){
+    // 已经穿过的孩子再点一次，文案换成更短的，别重复啰嗦
+    $('frameTxt').textContent = S.lookKey ? '站到框里 · 全身入镜' : '站到框里 · 再点「穿上」';
+  }
+}
+
+// 转屏后宽度变了，短/长文案要重挑一次
+let rsTimer;
+addEventListener('resize', ()=>{
+  clearTimeout(rsTimer);
+  rsTimer = setTimeout(()=>{ if(!S.live) updateModeHint(); }, 200);
+});
+
+/* ---------------- 建立实时换装会话 ---------------- */
+
+/** 按画的款式挑衣长措辞：
+ *  关键教训（第三轮）：「替换成参考图中这件衣服」这个框架会让模型把
+ *  手绘参考图当贴纸原样贴在胸口——轮廓、长度、贴纸感全被忠实复制，
+ *  后面追加的「拉长到膝盖」会被「复制参考图」的主任务无视。
+ *  正确框架：参考图是服装设计稿，按图案和颜色重新做一件真布料衣服。
+ *  - 范例款（garmentFull=null）走通用版；
+ *  - 手绘全身款（true）或竖长图（ar<0.85）：下摆强制到膝盖附近；
+ *  - 手绘上半身款（false）：下摆到腰胯。 */
+function xmaxPrompt(){
+  if(S.garmentFull === null) return CONFIG.promptXmax;
+  const ar = S.garmentAr || (S.garmentCanvas ? S.garmentCanvas.width/Math.max(1,S.garmentCanvas.height) : 1);
+  const dress = S.garmentFull === true || ar < 0.85;
+  // 第八轮教训：实时模型对提示词「开头」权重最高，最要命的指令必须放第一句；
+  // 之前裙长要求埋在中间，被模型无视，长裙参考图也被压缩成迷你裙。
+  if(dress){
+    return '最重要：这是一件从肩膀到膝盖的长连衣裙。裙摆必须从腰部一直盖过整个大腿、到膝盖附近；' +
+      '参考图画得短也必须加长裙摆，绝不能做成短裙或迷你裙，绝不能露出大腿。' +
+      '人物下身的裤子必须原样保留，绝不能脱掉或替换，也绝不能加内裤、安全裤、打底裤。' +
+      '按参考图的图案和颜色，做一件真正的布料衣服穿上，贴合身体、有褶皱光影，不是贴纸。' +
+      '严格保留人物的脸、五官、发型、姿势、手和背景。';
+  }
+  return '最重要：给人物穿一件上衣，下摆盖到腰胯；人物下身的裤子必须原样保留，绝不能脱掉。' +
+    '按参考图的图案和颜色，做一件真正的布料衣服穿上，贴合身体、有褶皱光影，不是贴纸。' +
+    '严格保留人物的脸、五官、发型、姿势、手和背景。';
+}
+
+async function startLiveTryOn(){
+  if(S.connecting) return;          // 双重保险：已经在建会话就别再开一个
+  const key = getKey();
+  if(!key){ openKeySheet(); return; }
+
+  // 已经在生成中（比如换了一件衣服）：先关掉旧会话，避免两路同时计费
+  if(S.live) await endLive();
+
+  S.connecting = true;
+  clearToast();
+  cta.classList.remove('ready');
+  cta.textContent = '连接中…'; cta.classList.add('wait');
+  cta.setAttribute('aria-busy', 'true');
+  setBrand('正在连接模型…', false);
+  $('connTxt').textContent = '正在连接模型…';
+  $('dockTip').textContent = '正在连接模型，请稍等…';
+  // 第一次要下模型包，说清楚，免得家长以为卡住了
+  const firstTime = !localStorage.getItem('xmax_seen');
+  $('connSub').textContent = firstTime ? '首次使用要加载模型，大约多等几秒' : '';
+  try{ localStorage.setItem('xmax_seen', '1'); }catch(_){}
+  $('conn').classList.add('on');
+
+  // 先释放本地摄像头与贴合循环，把摄像头交给 SDK 采集，避免抢设备
+  S.trying = false;
+  if(rafId){ cancelAnimationFrame(rafId); rafId = null; }
+  ctx.clearRect(0,0,stage.clientWidth,stage.clientHeight);
+  $('guide').classList.remove('on');
+  if(S.stream){ S.stream.getTracks().forEach(t=>t.stop()); S.stream = null; }
+
+  let slowTimer = null;
+  try{
+    // 三步都加超时：下模型包 / 传图 / 接管相机 / 出画面
+    const m = await withTimeout(loadXmax(), 22000, '下载模型包超时', 'load');
+    xmaxClient = new m.XmaxClient(new m.XmaxConfiguration({
+      apiKey: key,
+      environment: m.XmaxEnvironment.china,
+    }));
+
+    // 衣服图（已去底）→ 上传到 Xmax → 拿到参考图 URL
+    $('connTxt').textContent = '正在准备衣服…';
+    $('dockTip').textContent = '正在准备衣服，请稍等…';
+    // 裙类画用「本地绘制的写实平铺照片」当参考图（模型复制照片=复制出真衣服）
+    const blob = await new Promise(r=>(S.garmentRef || S.garmentCanvas).toBlob(r, 'image/png'));
+    const storage = xmaxClient.createStorageService();
+    const up = await withTimeout(
+      storage.uploadImage({ data:blob, fileName:'garment.png', contentType:'image/png' }),
+      22000, '上传画作超时', 'upload');
+    const refUrl = (up && up.url) || '';
+    if(!refUrl) throw new Error('衣服图上传失败，没拿到参考图地址');
+
+    // 实时管理器：模型固定 x2.1，环境 china（cloud.xmax.22duck.cn）
+    const realtime = xmaxClient.createRealtimeManager(
+      new m.RealtimeConfiguration({ model: m.RealtimeModel.x2_1 })
+    );
+    xmaxRealtime = realtime;
+
+    // 本地相机交给 SDK 采集（页面自己的摄像头前面已释放）
+    $('connTxt').textContent = '正在接管摄像头…';
+    const local = await withTimeout(
+      realtime.createLocalCameraStream({
+        preset: m.RealtimeCameraPreset.resolution1152x1536,
+        position: S.facing === 'user' ? m.CameraPosition.front : m.CameraPosition.back,
+        useMicrophone: false,
+      }), 16000, '接管摄像头超时', 'camera');
+
+    // 摄像头已经被 SDK 接管：立刻把本地画面接回页面上，别让用户对着黑屏等
+    const localTrack = local && local.videoTrack && local.videoTrack.mediaStreamTrack;
+    if(localTrack){
+      cam.classList.add('mirror-off');
+      cam.srcObject = new MediaStream([localTrack]);
+      S.mirrored = false;
+      try{ await cam.play(); }catch(_){}
+      $('connTxt').textContent = '正在把衣服穿上…';
+    }
+
+    setBrand('正在生成画面…', false);
+    // 生成阶段最慢，分两句安抚：等太久要让人知道「还在等」而不是「坏了」
+    slowTimer = setTimeout(()=>{
+      if(!S.connecting) return;
+      $('connTxt').textContent = '网络有点慢，还在等模型出画面…';
+      $('connSub').textContent = '同一台设备第二次会快很多';
+    }, 9000);
+
+    const genMs = firstTime ? 45000 : 30000;
+    const remote = await withTimeout(realtime.startGeneration({
+      localStream: local,
+      context: new m.RealtimeContext({ prompt: xmaxPrompt(), referencePath: refUrl }),
+    }), genMs, '模型没出画面', 'gen');
+    clearTimeout(slowTimer); slowTimer = null;
+
+    const track = remote && remote.videoTrack && remote.videoTrack.mediaStreamTrack;
+    if(!track) throw new Error('没拿到远端画面，可能相机没有输出画面');
+
+    cam.classList.add('mirror-off');
+    cam.srcObject = new MediaStream([track]);
+    S.mirrored = false;
+    try{ await cam.play(); }catch(_){}
+    $('conn').classList.remove('on');
+
+    S.live = true;
+    S.connecting = false;
+    cta.removeAttribute('aria-busy');
+    cta.textContent = '⏹ 结束'; cta.classList.add('stop'); cta.classList.remove('wait');
+    $('shotBtn').classList.add('on');
+    $('dockTip').textContent = CONFIG.sessionSeconds + ' 秒后自动结束 · 全身入镜效果最好';
+    startDockTips();
+    setBrand('已换上你的衣服', true);
+    toast('衣服已穿上 ✓', 2200);
+    startSessionTimer();
+    startRecording();
+  }catch(e){
+    console.error(e);
+    clearTimeout(slowTimer); slowTimer = null;
+    S.connecting = false;
+    cta.removeAttribute('aria-busy');
+    try{ if(xmaxRealtime) await xmaxRealtime.close(); }catch(_){}
+    xmaxRealtime = null;
+    $('conn').classList.remove('on');
+    cta.textContent = '✨ 穿上'; cta.classList.remove('wait','stop');
+    setBrand(homeBrand(), false);
+    // 相机先还回来，界面不至于黑着
+    startCamera(S.facing).catch(()=>{});
+    S.mirrored = S.facing === 'user';
+    cam.classList.toggle('mirror-off', !S.mirrored);
+
+    if(e && e.code === 'TIMEOUT'){
+      // 超时：不自动烧掉这次机会，交给老师选「再试」还是「用本机演示」
+      showFail(e);
+      updateModeHint();
+      return;
+    }
+
+    // 明确报错：这次先退回本地贴合演示，别让孩子干等着
+    S.liveDown = true;
+    initPose();
+    updateModeHint();
+    toast(xmaxErrorText(e) + '；再点一次「穿上」会用本地演示', 5600);
+  }
+}
+
+/* =====================================================================
+   十、本次体验计时：固定 15 秒，到点自动结束（避免挂着一直计费）
+   ===================================================================== */
+let liveTimer = null;
+const sess = { t0:0, running:false, warned:false };
+
+/* --- 本机使用统计（不上传，用于「额度」面板） --- */
+function todayKey(){
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+function readStat(){
+  try{
+    const o = JSON.parse(localStorage.getItem('tryon_use') || '{}');
+    if(o && o.d === todayKey()) return { n: o.n|0, s: o.s|0 };
+  }catch(_){}
+  return { n:0, s:0 };
+}
+function addStat(seconds){
+  const st = readStat();
+  st.n += 1; st.s += Math.max(1, Math.round(seconds));
+  try{ localStorage.setItem('tryon_use', JSON.stringify({ d: todayKey(), n: st.n, s: st.s })); }catch(_){}
+}
+
+/* --- 每日上限：防链接外传把额度烧光（次数与累计秒数各一道） --- */
+function openLimit(kind){
+  const st = readStat();
+  const bySecs = kind === 'secs';
+  $('limHead').textContent = bySecs ? '今天的体验时间用完了' : '今天的体验次数用完了';
+  $('limNote').innerHTML = bySecs
+    ? '这台设备今天已经累计体验 <b>' + st.s + '</b> 秒（上限 <span>' + CONFIG.dailyMaxSeconds + '</span> 秒），明天会自动恢复。'
+    : '这台设备今天已经体验 <b>' + st.n + '</b> 次（上限 <span>' + CONFIG.dailyLimit + '</span> 次），明天会自动恢复。';
+  $('limTip').textContent = bySecs
+    ? '想接着上：可以在 ⚙ 里切「只本机演示」，或者点下面重置今天的累计时间。'
+    : '如果是老师还要继续上课：点右上角 ⚙ →「重置今日次数」就能接着用。';
+  clearToast();
+  $('limit').classList.add('on');
+}
+$('limClose').addEventListener('click', ()=>{ $('limit').classList.remove('on'); paintFrame(); });
+$('limit').addEventListener('click', e=>{ if(e.target.id === 'limit') $('limit').classList.remove('on'); });
+
+/* --- 隐私告知：第一次「穿上」前确认一次，之后不再打扰 --- */
+function privacyAccepted(){
+  try{ return localStorage.getItem('privacy_ok') === '1'; }catch(_){ return true; }
+}
+function showPrivacy(){
+  paintFrame(); clearToast(); $('privacy').classList.add('on'); }
+$('privacyOk').addEventListener('click', ()=>{
+  try{ localStorage.setItem('privacy_ok','1'); }catch(_){}
+  $('privacy').classList.remove('on');
+  startTryOn();          // 确认完直接开穿，不用再点一次
+});
+
+/* ⚙ 里的今日用量 + 重置入口（老师上连堂课时用） */
+function paintKeyUsage(){
+  const el = $('keyUsage');
+  if(!el) return;
+  const st = readStat();
+  const over = st.n >= CONFIG.dailyLimit;
+  el.innerHTML = '今天已体验 <b style="color:#fff">' + st.n + '</b> 次（上限 ' + CONFIG.dailyLimit + ' 次）'
+    + ' · <u id="keyReset" style="color:#ffb37a;cursor:pointer">重置今日次数</u>'
+    + (over ? '　<span style="color:#ffb4b4">已到上限</span>' : '');
+  const r = $('keyReset');
+  if(r) r.addEventListener('click', e=>{
+    e.stopPropagation();
+    try{ localStorage.removeItem('tryon_use'); }catch(_){}
+    paintKeyUsage();
+    toast('今天次数已重置 ✓', 2200);
+  });
+}
+
+function sessionLeft(){ return Math.max(0, CONFIG.sessionSeconds - (Date.now() - sess.t0) / 1000); }
+
+function renderTimer(){
+  const on = sess.running;
+  $('timer').classList.toggle('on', on);
+  const ring = $('timer').querySelector('.ring');
+  if(!on){
+    $('timer').classList.remove('low');
+    // 不在计时时这个胶囊变成「额度」入口，随时能查点数
+    if(ring) ring.style.display = 'none';
+    $('timerTxt').textContent = '额度';
+    return;
+  }
+  if(ring) ring.style.display = '';
+  const left = sessionLeft();
+  $('timerTxt').textContent = Math.ceil(left) + 's';
+  $('timer').classList.toggle('low', left <= CONFIG.warnSeconds);
+  paintRecBadge();          // 录制角标的秒数跟着倒计时一起走
+  if($('quota').classList.contains('on')) paintQuota();
+}
+
+function paintQuota(){
+  const left = sess.running ? sessionLeft() : CONFIG.sessionSeconds;
+  $('qLeft').textContent = Math.ceil(left);
+  $('qBar').style.width = (100 * left / CONFIG.sessionSeconds) + '%';
+  const st = readStat();
+  $('qCount').textContent = st.n;
+  $('qSecs').textContent = st.s;
+  $('qNote').textContent = sess.running
+    ? '这次正在计时，到 0 会自动结束，不用管它。'
+    : '这次按 ' + durLabel(CONFIG.sessionSeconds) + ' 算，到点自动结束，不会一直挂着计费。';
+  paintDur();
+  paintCredit();
+}
+
+/* --- 真实点子余额（从 Xmax 账户读，60 秒缓存） --- */
+const creditCache = { t:0, v:null, busy:false };
+function fmtCredit(v){
+  if(typeof v !== 'number' || !isFinite(v)) return '—';
+  return v >= 100 ? String(Math.round(v)) : (Math.round(v*10)/10).toFixed(1);
+}
+async function paintCredit(){
+  const el = $('qCredit');
+  if(!el) return;
+  if(!getKey()){ el.textContent = '未接入'; return; }
+  if(creditCache.v !== null && Date.now() - creditCache.t < 60000){ el.textContent = fmtCredit(creditCache.v); return; }
+  if(creditCache.busy) return;
+  creditCache.busy = true;
+  el.textContent = '…';
+  try{
+    if(!xmaxClient){
+      const m = await loadXmax();
+      xmaxClient = new m.XmaxClient(new m.XmaxConfiguration({ apiKey:getKey(), environment:m.XmaxEnvironment.china }));
+    }
+    const b = await xmaxClient.getCreditBalance();
+    creditCache.t = Date.now(); creditCache.v = b && b.currentBalance;
+    creditCache.busy = false;
+    el.textContent = fmtCredit(creditCache.v);
+  }catch(e){
+    creditCache.busy = false;
+    el.textContent = '读不到';
+    const tip = $('qTip');
+    if(tip) tip.textContent = '剩余点数没读出来：' + xmaxErrorText(e);
+  }
+}
+
+/** credit=false：被新会话顶掉时不计入使用次数 */
+function stopSessionTimer(credit = true){
+  if(!sess.running) return;
+  const used = Math.min(CONFIG.sessionSeconds, (Date.now() - sess.t0) / 1000);
+  sess.running = false;
+  if(liveTimer){ clearInterval(liveTimer); liveTimer = null; }
+  renderTimer();
+  if(credit) addStat(used);
+  paintFrame();
+}
+
+function startSessionTimer(){
+  stopSessionTimer(true);
+  paintFrame();                     // 已经开始穿了：取景框让位
+  sess.t0 = Date.now();
+  sess.running = true;
+  sess.warned = false;
+  renderTimer();
+  liveTimer = setInterval(()=>{
+    if(!sess.running) return;
+    const left = sessionLeft();
+    renderTimer();
+    if(left <= CONFIG.warnSeconds && !sess.warned){
+      sess.warned = true;
+      toast('还剩 ' + CONFIG.warnSeconds + ' 秒', 1200);
+    }
+    if(left <= 0) finishSession();
+  }, 200);
+}
+
+/** 到点（或手动）结束，两种模式都走这里 */
+async function finishSession(auto = true){
+  const wasLive = S.live;
+  // 先截图再结束：endLive 会把画面换回摄像头，慢了就只剩一张空镜
+  const shot = (wasLive || S.trying) ? captureFrame() : null;
+  stopSessionTimer(true);
+  if(wasLive) await endLive();
+  else if(S.trying) stopTryOn();
+  if(shot) showResult(shot);            // 结果留下来，孩子还能看、能保存
+  else if(auto) toast(CONFIG.sessionSeconds + ' 秒到了，已自动结束（省额度）· 再点「穿上」可以继续', 4000);
+}
+
+/* --- 计时胶囊 / 额度面板 --- */
+$('timer').addEventListener('click', ()=>{
+  paintQuota();
+  clearToast();
+  $('quota').classList.add('on');
+});
+/* 档位：15/30 直接切，60 秒先确认一次（一次约 4 倍点数） */
+$('durSeg').addEventListener('click', e=>{
+  const btn = e.target.closest('button[data-sec]');
+  if(!btn) return;
+  const sec = parseInt(btn.dataset.sec, 10);
+  if(sec === CONFIG.sessionSeconds) return;
+  if(sec === 60){
+    const st = readStat();
+    $('durN').textContent = st.n;
+    $('durS').textContent = st.s;
+    clearToast();
+    $('durAsk').classList.add('on');
+    return;
+  }
+  setDur(sec);
+});
+$('durYes').addEventListener('click', ()=>{
+  $('durAsk').classList.remove('on');
+  setDur(60, true);
+  toast('这次按 60 秒算 · 约 4 倍点数', 2600);
+});
+$('durNo').addEventListener('click', ()=>{
+  $('durAsk').classList.remove('on');
+  setDur(30, true);
+  toast('已改成 30 秒', 1800);
+});
+$('durAsk').addEventListener('click', e=>{ if(e.target.id === 'durAsk') $('durAsk').classList.remove('on'); });
+
+$('micSwitch').addEventListener('click', ()=>{
+  const next = !micOn();
+  setMic(next);
+  toast(next ? '录像会带声音（下次开始生效）' : '录像改成无声，不再使用麦克风', 2400);
+});
+
+$('qClose').addEventListener('click', ()=>$('quota').classList.remove('on'));
+$('quota').addEventListener('click', e=>{ if(e.target.id === 'quota') $('quota').classList.remove('on'); });
+$('qStop').addEventListener('click', ()=>{
+  $('quota').classList.remove('on');
+  finishSession(false);
+  toast('已结束', 1200);
+});
+
+async function endLive(){
+  stopDockTips();
+  stopRecording();
+  S.live = false;
+  stopSessionTimer();
+  $('conn').classList.remove('on');
+  try{ if(xmaxRealtime) await xmaxRealtime.close(); }catch(_){}
+  xmaxRealtime = null;
+  cam.classList.remove('mirror-off');
+  if(S.stream){ S.stream.getTracks().forEach(t=>t.stop()); S.stream = null; }
+  await startCamera(S.facing).catch(()=>{});
+  S.mirrored = S.facing === 'user';
+  cam.classList.toggle('mirror-off', !S.mirrored);
+  $('shotBtn').classList.remove('on');
+  cta.textContent = '✨ 穿上'; cta.classList.remove('stop','wait');
+  setBrand(homeBrand(), true);
+  updateModeHint();
+}
+
+/** Key 变更或切摄像头时重建会话 */
+async function restartLive(){
+  if(!S.live) return;
+  const wasTrying = true;
+  await endLive();
+  if(wasTrying) startLiveTryOn();
+}
+
+/* =====================================================================
+   十一、启动
+   ===================================================================== */
+// 调试钩子：便于在控制台/自动化里注入关键点验证贴合效果
+window.__TRYON__ = { S, CONFIG, drawCloth, clothGeometry, cutout, borderColor };
+
+/** 把摄像头失败的原因翻译成人话（老师看得懂、能自己解决） */
+function camErrReason(e){
+  const n = e && e.name;
+  if(n === 'NotAllowedError' || n === 'SecurityError')
+    return '权限被拒绝了。点「重新打开」再选一次「允许」；如果浏览器不再弹窗，就按下面的方法去设置里手动打开。';
+  if(n === 'NotFoundError' || n === 'OverconstrainedError')
+    return '这台设备没检测到摄像头。换一台有摄像头的平板或手机再打开这个链接。';
+  if(n === 'NotReadableError')
+    return '摄像头被别的应用占用了（比如微信视频、相机、录屏）。把那个应用关掉，再点「重新打开」。';
+  return (e && e.message) ? ('没能打开摄像头：' + e.message) : '没能打开摄像头，原因不明。';
+}
+
+/** 摄像头失败后的统一出口：改状态灯 + 弹可重试的面板 */
+function showCamErr(e){
+  S.camFail = true;
+  clearToast();                       // 别让引导气泡压在面板文字上
+  setBrand('摄像头没打开', false);
+  $('camErrNote').textContent = camErrReason(e);
+  $('camErr').classList.add('on');
+}
+
+$('camErrClose').addEventListener('click', ()=>$('camErr').classList.remove('on'));
+$('camErr').addEventListener('click', e=>{ if(e.target.id === 'camErr') $('camErr').classList.remove('on'); });
+$('camErrRetry').addEventListener('click', async ()=>{
+  const btn = $('camErrRetry');
+  btn.textContent = '正在重试…'; btn.disabled = true;
+  try{
+    await startCamera(S.facing);
+    S.camFail = false;
+    $('camErr').classList.remove('on');
+    setBrand(homeBrand(), true);
+    toast('摄像头已打开 ✓', 1800);
+    if(!isLive() && !S.poseReady && !S.landmarker) initPose();
+  }catch(e){
+    $('camErrNote').textContent = camErrReason(e);
+    toast('还是打不开摄像头', 2600);
+  }finally{
+    btn.textContent = '重新打开'; btn.disabled = false;
+  }
+});
+
+/* ---------------- 模型连不上：说清楚卡在哪一步 + 给两条出路 ---------------- */
+
+/** 一句话环境摘要：老师截图发过来，我就能判断是不是浏览器/网络的问题 */
+/** 读环境：谁在打开这个页面，缺不缺实时视频需要的能力 */
+function envInfo(){
+  const ua = navigator.userAgent || '';
+  const ios = /iPad|iPhone|iPod/.test(ua) ||
+              (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const osv = ua.match(/\bOS (\d+)[_.](\d+)/) || [];
+  const edge = /EdgiOS\//.test(ua) || (ios && /Edg\//.test(ua));
+  const chrome = !edge && /CriOS\//.test(ua);
+  const firefox = !edge && !chrome && /FxiOS\//.test(ua);
+  const saf = !edge && !chrome && !firefox && /Safari\//.test(ua);
+  const br = edge ? 'Edge' : chrome ? 'Chrome' : firefox ? 'Firefox' : saf ? 'Safari' : '浏览器';
+  const ver = (ua.match(/EdgiOS\/(\d+)/) || ua.match(/CriOS\/(\d+)/) ||
+               ua.match(/FxiOS\/(\d+)/) || ua.match(/Version\/(\d+)/) || [])[1] || '';
+  return {
+    ios, edge, chrome, safari: saf, br, ver,
+    iosVer: osv[1] ? osv[1] + (osv[2] ? '.' + osv[2] : '') : '',
+    ve: 'VideoEncoder' in window,
+    mstp: 'MediaStreamTrackProcessor' in window,
+    rtc: !!window.RTCPeerConnection,
+  };
+}
+
+function diagSummary(){
+  const e = envInfo();
+  const dev = e.ios ? ('iPad/iPhone' + (e.iosVer ? ' i' + e.iosVer : '')) : (navigator.platform || '电脑');
+  // Safari 没有「轨道处理」是正常的（SDK 会切到兼容模式），所以标 ↺ 而不是 ✗，别自己吓自己
+  const cap = [
+    e.rtc ? 'RTC✓' : 'RTC✗',
+    e.ve ? '编码✓' : '编码✗',
+    e.mstp ? '轨道处理✓' : (e.ios ? '轨道处理↺兼容' : '轨道处理✗'),
+  ].join(' · ');
+  return `${dev} · ${e.br}${e.ver ? ' ' + e.ver : ''} · ${location.protocol === 'https:' ? 'https✓' : 'http✗'} · ${cap}`;
+}
+
+/** 超时/报错的原因翻译：明确指出卡在哪一步，不写「未知错误」 */
+function failText(e){
+  if(e && e.code === 'TIMEOUT'){
+    const s = e.stage || 'gen';
+    if(s === 'load')   return '模型包（约 6MB）没能下载完，网络太慢或被网络策略拦住了。';
+    if(s === 'upload') return '画作没传上去，网络可能断了。';
+    if(s === 'camera') return '模型没能接管摄像头，可能被其他应用占着，或浏览器不允许。';
+    return '等了很久，模型一直没出画面。最常见的原因是这台设备或这个网络不支持实时视频通话（学校 Wi-Fi 常会挡）。';
+  }
+  return xmaxErrorText(e);
+}
+
+function showFail(e){
+  clearToast();
+  $('failNote').textContent = failText(e);
+  $('failStage').innerHTML = '卡住的环节：<b>' +
+    ({ load:'下载模型包', upload:'上传画作', camera:'接管摄像头', gen:'等模型出画面' }[e && e.stage] || '等模型出画面') +
+    '</b><br>环境：' + diagSummary();
+  // 同样是 iPad，Safari 实测能连上、Edge 基本连不上，提示要分开写
+  const e0 = envInfo();
+  $('failHint').textContent = (e0.ios && e0.edge)
+    ? 'Edge 在 iPad 上连模型基本都会卡住。把这个链接复制到 Safari 打开就正常（实测很快）；也可以现在「用本机演示」。'
+    : e0.ios
+      ? 'Safari 实测是可以连上的，这次失败多半是网络或额度。也可以「用本机演示」：不联网、不花额度。'
+      : '可以先「用本机演示」继续上课：不联网、不花额度，衣服同样会贴在孩子身上。';
+  $('fail').classList.add('on');
+}
+
+$('failClose').addEventListener('click', ()=>$('fail').classList.remove('on'));
+$('fail').addEventListener('click', e=>{ if(e.target.id === 'fail') $('fail').classList.remove('on'); });
+$('failDemo').addEventListener('click', ()=>{
+  $('fail').classList.remove('on');
+  S.liveDown = true;          // 这台设备本次不再试真模型
+  initPose();                 // 本地演示要姿态模型
+  startTryOn();
+});
+$('failRetry').addEventListener('click', ()=>{
+  $('fail').classList.remove('on');
+  S.liveDown = false;         // 老师想再赌一次真模型
+  startTryOn();
+});
+
+/* iPad + Edge：第一次点「穿上」先劝一句换 Safari，别让孩子对着转圈干等 */
+function iosEdge(){
+  const e = envInfo();
+  return e.ios && e.edge;
+}
+function pageLink(){
+  return location.origin + location.pathname + location.search;
+}
+function showEdgeTip(){
+  clearToast();
+  $('edgeUrl').textContent = pageLink();
+  $('edgeTip').classList.add('on');
+}
+$('edgeTip').addEventListener('click', e=>{ if(e.target.id === 'edgeTip') $('edgeTip').classList.remove('on'); });
+$('edgeCopy').addEventListener('click', async ()=>{
+  try{
+    await navigator.clipboard.writeText(pageLink());
+    toast('链接已复制，去 Safari 粘贴打开', 3600);
+  }catch(_){
+    toast('长按上面那行链接复制', 3000);
+  }
+});
+$('edgeTry').addEventListener('click', ()=>{
+  $('edgeTip').classList.remove('on');
+  startTryOn();
+});
+$('edgeLocal').addEventListener('click', ()=>{
+  $('edgeTip').classList.remove('on');
+  setForceLocal(true);
+  initPose();
+  startTryOn();
+});
+
+( async function boot(){
+  $('bootT').textContent='正在打开摄像头…';
+  try{
+    await startCamera('user');
+  }catch(e){
+    S.camFail = true;                 // 先立flag：下面的入场引导就不会再抢话
+    $('bootT').textContent='需要摄像头权限';
+    $('bootS').textContent='请允许使用摄像头，并用 https 链接打开';
+    $('boot').classList.add('gone');
+    showCamErr(e);
+  }
+  // 摄像头一好就放行，姿态模型在后台继续加载（不让孩子干等）
+  $('boot').classList.add('gone');
+  initDur();       // 读回上次选的时长档位（15/30/60）
+  paintDur();
+  paintMicSwitch();
+  $('timerTxt').textContent = durLabel(CONFIG.sessionSeconds);
+  renderTimer();   // 顶栏胶囊初始态显示「额度」
+  // 接了真模型的用户不需要本地姿态跟踪，省掉 24MB 模型下载
+  if(!isLive() && !S.camFail) initPose();
+  // 首次进入的引导：只说最该做的一件事（站位提示在选完图后会出现，别重复）
+  setTimeout(()=>{
+    if(S.garmentCanvas || S.trying || S.live || S.camFail) return;
+    if(offlineMode()) toast('没连网 · 范例图已存好，挑一件照样能穿', 3600);
+    else toast('先挑一件宋锦范例，或拍一张孩子的画', 3400);
+  }, 600);
+  if(offlineMode()) setBrand('离线 · 本机演示', false);
+})();
+
+/* ---------- 断网也能上课 ----------
+   网络掉了就把状态灯和文案切成本机演示；云端会话本身有超时出口，不在这里硬掐。 */
+addEventListener('offline', ()=>{
+  setBrand('离线 · 本机演示', false);
+  updateModeHint();
+  toast('网络断了 · 已切到本机演示，范例图照常能穿', 3400);
+});
+addEventListener('online', ()=>{
+  setBrand(homeBrand(), true);
+  updateModeHint();
+  toast('网络恢复 ✓ 可以再用真模型了', 2600);
+});
+
+/* 只在 https / 本机注册：http 局域网预览不装缓存，避免调试时拿到旧页面 */
+if('serviceWorker' in navigator &&
+   (location.protocol === 'https:' ||
+    location.hostname === 'localhost' || location.hostname === '127.0.0.1')){
+  // 注册后：先检查更新，再让 SW 把 17MB 的范例图与模型分批灌进缓存
+  // （SW 只先装 4 个小文件就激活，断网能立刻开页面；大件随后补齐）
+  const regSW = ()=>{
+    navigator.serviceWorker.register('./sw.js', {scope:'./'}).then(()=>{
+      navigator.serviceWorker.ready.then(r=>{
+        try{ r.update().catch(()=>{}); }catch(_){}
+        try{ r.active && r.active.postMessage({type:'prefetch'}); }catch(_){}
+      }).catch(()=>{});
+    }).catch(()=>{});
+  };
+  if(document.readyState === 'complete') regSW();
+  else addEventListener('load', regSW, {once:true});
+}
+</script>
+</body>
+</html>

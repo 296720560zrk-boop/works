@@ -1,0 +1,16 @@
+{
+  "name": "锦衣小裁缝 · 小手一裁，宋锦上身",
+  "short_name": "锦衣小裁缝",
+  "description": "锦衣小裁缝 · 小手一裁，宋锦上身——把小朋友的画或宋锦范例穿在身上，变成自己的衣服",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "lang": "zh-CN",
+  "icons": [
+    { "src": "./icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "./icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "./icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

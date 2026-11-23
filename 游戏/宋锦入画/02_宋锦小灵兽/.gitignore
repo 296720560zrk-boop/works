@@ -1,0 +1,7 @@
+_backup/
+_shots/
+_lab/
+*.log
+Thumbs.db
+.DS_Store
+node_modules/
