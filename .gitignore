@@ -30,3 +30,6 @@ _backup/
 _shots/
 _lab/
 *.tmp
+
+# 素材备份目录（不进仓库）
+_backup*/
