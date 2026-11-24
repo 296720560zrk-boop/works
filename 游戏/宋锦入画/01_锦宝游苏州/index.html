@@ -10,7 +10,11 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="锦宝">
 <title>锦宝游苏州</title>
-<link rel="stylesheet" href="chuanyue.css?v=3c8d9f1a">
+<meta name="description" content="穿上宋锦，游苏州。摄像头实时换装，带孩子走进评弹书场、园林水榭、山塘灯会等十个江南场景，认识宋锦纹样。">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/icon/icon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="assets/icon/icon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/icon/apple-touch-icon.png">
+<link rel="stylesheet" href="chuanyue.css?v=27539b97">
 </head>
 <body>
 
@@ -71,6 +75,10 @@
     <button class="op" id="btnShot" title="拍一幅宋画（P）" disabled>
       <span class="ic">◉</span><span class="lb">拍照</span>
     </button>
+    <button class="op" id="btnGallery" title="回看录好的视频和照片（V）">
+      <span class="ic">▤</span><span class="lb">回看</span>
+      <i class="galN" id="galN">0</i>
+    </button>
     <button class="op" id="btnFull" title="全屏（F）">
       <span class="ic">⛶</span><span class="lb">全屏</span>
     </button>
@@ -80,11 +88,27 @@
   </div>
 </div>
 
+<!-- ================= 回看：录好的视频与照片 ================= -->
+<div id="gal" aria-hidden="true">
+  <div class="galBox">
+    <div class="galHead">
+      <div class="galTitle">我的宋锦相册<em id="galCount"></em></div>
+      <div class="galTools">
+        <button class="galBtn" id="galSave">保存到设备</button>
+        <button class="galBtn danger" id="galDel">删除</button>
+        <button class="galBtn close" id="galClose">收起</button>
+      </div>
+    </div>
+    <div class="galStage" id="galStage"></div>
+    <div class="galStrip" id="galStrip"></div>
+  </div>
+</div>
+
 <!-- ================= 江南地图（入口） ================= -->
 <div id="gate">
   <div id="gStage">
     <div class="gWorld" id="gWorld">
-      <img class="gMap" src="assets/map/jiangnan.png" alt="">
+      <img class="gMap" src="assets/map/jiangnan.webp" alt="江南水乡地图：评弹书场、园林水榭、月洞花墙、山塘集市、织造坊、灯会、河畔人家、书房、琴室、古戏台十处场景">
       <div class="gShade"></div>
       <div class="gPins" id="gPins"></div>
     </div>
@@ -94,6 +118,8 @@
     <div class="gTitle">锦 宝 游 苏 州</div>
     <div class="gSub">点一个地方，我们一起去看看</div>
   </div>
+
+  <div class="gPrivacy">摄像头画面会送到云端实时生成，本页不保存</div>
 
   <div class="gFoot">
     <button class="gLink" id="btnGateCfg">设 置</button>
@@ -108,7 +134,7 @@
   <div class="tuClouds" id="tuClouds"></div>
   <div class="tuRings"><i></i><i></i><i></i></div>
   <div class="tuCore"></div>
-  <div class="tuTx"><b>锦宝出发咯</b><em id="tuWhere"></em></div>
+  <div class="tuTx"><b>锦宝出发咯</b><em id="tuWhere"></em><span class="tuTip" id="tuTip">正在给你换衣裳</span></div>
 </div>
 
 <!-- ================= 设置面板 ================= -->
@@ -205,6 +231,6 @@
   <i class="rdot"></i><span id="recTime">00:00</span>
 </div>
 
-<script type="module" src="chuanyue.js?v=8f4c2a6e"></script>
+<script type="module" src="chuanyue.js?v=91e38dde"></script>
 </body>
 </html>

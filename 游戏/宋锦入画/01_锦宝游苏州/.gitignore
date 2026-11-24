@@ -5,3 +5,8 @@ _lab/
 Thumbs.db
 .DS_Store
 node_modules/
+
+# GitHub 同步令牌与本机绑定文件（绝不入库）
+.github-token
+.wbapp_*
+_tools/

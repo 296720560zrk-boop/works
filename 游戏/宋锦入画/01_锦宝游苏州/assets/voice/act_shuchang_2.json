@@ -1,0 +1,11 @@
+{
+ "voice": "zh-CN-XiaoyiNeural",
+ "duration_ms": 4412,
+ "sentences": [
+  {
+   "t": 100,
+   "d": 4312,
+   "text": "给说书的先生鼓鼓掌，说一句“真好听"
+  }
+ ]
+}

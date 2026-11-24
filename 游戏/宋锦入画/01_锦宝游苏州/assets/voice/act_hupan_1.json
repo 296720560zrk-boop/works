@@ -1,0 +1,11 @@
+{
+ "voice": "zh-CN-XiaoyiNeural",
+ "duration_ms": 3592,
+ "sentences": [
+  {
+   "t": 100,
+   "d": 3492,
+   "text": "数一数，墙上有几扇花窗"
+  }
+ ]
+}

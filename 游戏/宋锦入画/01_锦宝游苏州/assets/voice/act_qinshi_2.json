@@ -1,0 +1,11 @@
+{
+ "voice": "zh-CN-XiaoyiNeural",
+ "duration_ms": 3136,
+ "sentences": [
+  {
+   "t": 100,
+   "d": 3036,
+   "text": "念一句诗：明月松间照"
+  }
+ ]
+}

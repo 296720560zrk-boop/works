@@ -1,0 +1,11 @@
+{
+ "voice": "zh-CN-XiaoyiNeural",
+ "duration_ms": 3422,
+ "sentences": [
+  {
+   "t": 100,
+   "d": 3322,
+   "text": "对着河灯说一句：“漂得远远的"
+  }
+ ]
+}

@@ -1,0 +1,11 @@
+{
+ "voice": "zh-CN-XiaoyiNeural",
+ "duration_ms": 3852,
+ "sentences": [
+  {
+   "t": 100,
+   "d": 3752,
+   "text": "听一段评弹，跟着调子轻轻点头"
+  }
+ ]
+}

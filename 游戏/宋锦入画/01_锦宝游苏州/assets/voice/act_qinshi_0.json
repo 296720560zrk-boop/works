@@ -1,0 +1,11 @@
+{
+ "voice": "zh-CN-XiaoyiNeural",
+ "duration_ms": 3696,
+ "sentences": [
+  {
+   "t": 100,
+   "d": 3596,
+   "text": "静下来听三秒，什么声音都不出"
+  }
+ ]
+}
