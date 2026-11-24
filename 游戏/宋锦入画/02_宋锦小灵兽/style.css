@@ -93,35 +93,94 @@ html,body{
   height:var(--rod-h);
   z-index:6;
   pointer-events:none;
+  /* 老紫檀：光比压平、去艳，木纹顺轴走 —— 不再是发亮的塑料条 */
   background:
     linear-gradient(180deg,
-      rgba(0,0,0,.66) 0%,
-      rgba(255,210,170,.10) 10%,
-      rgba(255,236,208,.50) 28%,
-      rgba(255,250,240,.26) 44%,
-      rgba(0,0,0,.06) 62%,
-      rgba(0,0,0,.40) 82%,
-      rgba(0,0,0,.80) 100%),
+      rgba(0,0,0,.62) 0%,
+      rgba(255,206,158,.05) 9%,
+      rgba(255,232,200,.20) 27%,
+      rgba(255,246,232,.09) 46%,
+      rgba(0,0,0,.14) 64%,
+      rgba(0,0,0,.44) 83%,
+      rgba(0,0,0,.78) 100%),
     url("assets/ui/rod_wood.jpg") center / auto 100% repeat-x;
-  filter:brightness(1.38) saturate(1.10);
+  filter:brightness(1.04) saturate(.86) contrast(1.06) sepia(.16);
   box-shadow:
-    0 1px 0 rgba(255,214,160,.16) inset,
+    0 1px 0 rgba(255,214,160,.10) inset,
     0 -1px 0 rgba(0,0,0,.55) inset;
 }
 .rod-t{ top:0; }
 .rod-b{ bottom:0; }
 
-/* 轴线：一道极细的金线压在轴身中间，像镶银的轴杆 */
+/* 陈旧痕迹：水渍、霉斑、裂纹、常被手摸到的地方磨白一点。
+   刻意不规整，越不像程序画的越好。 */
+.rod .patina{
+  position:absolute; inset:0;
+  pointer-events:none;
+  background:
+    radial-gradient(22% 88% at 34% 40%,  rgba(236,206,160,.10), rgba(236,206,160,0) 76%),
+    radial-gradient(16% 70% at 57% 66%,  rgba(236,206,160,.08), rgba(236,206,160,0) 74%),
+    radial-gradient(13% 62% at 82% 52%,  rgba(232,200,152,.09), rgba(232,200,152,0) 76%),
+    radial-gradient(40% 130% at 11% 100%, rgba(255,238,206,.15), rgba(255,238,206,0) 72%),
+    radial-gradient(26% 110% at 89% 0%,   rgba(255,238,206,.11), rgba(255,238,206,0) 72%),
+    radial-gradient(10% 64% at 27% 38%,   rgba(16,7,2,.40), rgba(16,7,2,0) 74%),
+    radial-gradient(8% 50%  at 62% 66%,   rgba(16,7,2,.34), rgba(16,7,2,0) 72%),
+    radial-gradient(14% 76% at 78% 30%,   rgba(18,8,2,.30), rgba(18,8,2,0) 76%),
+    radial-gradient(6% 44%  at 44% 72%,   rgba(16,7,2,.26), rgba(16,7,2,0) 70%),
+    /* 顺纹木丝：粗细不一的竖线，木头才不像一块塑料 */
+    repeating-linear-gradient(90deg,
+      rgba(20,10,4,.16) 0 1px, rgba(20,10,4,0) 1px 5px,
+      rgba(255,222,178,.05) 5px 6px, rgba(20,10,4,0) 6px 11px,
+      rgba(20,10,4,.09) 11px 12px, rgba(20,10,4,0) 12px 17px),
+    linear-gradient(90deg,
+      rgba(18,9,3,0) 33.5%, rgba(18,9,3,.26) 33.9%, rgba(18,9,3,0) 34.4%,
+      rgba(18,9,3,0) 70.9%, rgba(18,9,3,.22) 71.3%, rgba(18,9,3,0) 71.9%);
+  opacity:.92;
+}
+
+/* 轴线：一道细金线压在轴身中间，做旧到近乎沉进木头里 */
 .rod::after{
   content:"";
   position:absolute; left:0; right:0; top:50%;
   height:1px;
   background:linear-gradient(90deg,
     rgba(201,162,39,0) 0%,
-    rgba(201,162,39,.30) 12%,
-    rgba(232,196,106,.52) 50%,
-    rgba(201,162,39,.30) 88%,
+    rgba(201,162,39,.16) 14%,
+    rgba(214,176,88,.32) 50%,
+    rgba(201,162,39,.16) 86%,
     rgba(201,162,39,0) 100%);
+}
+
+/* 轴身阴刻标题：字是「刻进去」的 —— 上缘吃阴影，下缘吃高光 */
+.rod-title{
+  position:absolute; inset:0;
+  z-index:2;
+  margin:0;
+  display:grid; place-items:center;
+  font-family:var(--font-kai);
+  font-size:clamp(19px, 2.7vmin, 26px);
+  font-weight:600;
+  letter-spacing:.30em;
+  padding-left:.30em;             /* 抵消末字后的字距，视觉才真正居中 */
+  color:rgba(232,213,176,.92);
+  text-shadow:
+    0 -1px 0 rgba(0,0,0,.78),
+    0 -2px 5px rgba(0,0,0,.52),
+    0 1px 0 rgba(255,244,214,.30),
+    0 2px 3px rgba(0,0,0,.30),
+    0 0 12px rgba(255,210,140,.08);
+  -webkit-text-stroke:.45px rgba(30,14,5,.42);
+}
+/* 轴身中段一层极淡的包浆反光：老木头被盘过的地方才有的柔光，
+   不能做成一块发暗的色斑 */
+.rod-t::before{
+  content:"";
+  position:absolute; inset:0;
+  z-index:1;
+  pointer-events:none;
+  background:
+    radial-gradient(62% 88% at 50% 26%, rgba(255,226,182,.055), rgba(255,226,182,0) 72%),
+    radial-gradient(34% 70% at 50% 92%, rgba(0,0,0,.16), rgba(0,0,0,0) 76%);
 }
 
 /* 卷边：轴后面露出的那一条纸。没有它，轴就是一根木条 */
@@ -134,71 +193,52 @@ html,body{
 .rod-t .edge{ top:100%; box-shadow:0 3px 8px rgba(0,0,0,.5); }
 .rod-b .edge{ bottom:100%; background:linear-gradient(0deg, #EDE2CE, #D8C6A4 60%, #B9A57F); box-shadow:0 -3px 8px rgba(0,0,0,.5); }
 
-/* 轴头 */
+/* 轴头：老象牙 / 骨料，蒙了点灰，不再是一圈发光金环 */
+/* 轴柄：不是另装的一枚白圆饼，就是这根木轴两端车粗的那一段 ——
+   同一种木头、同一套明暗，只是多了几道车削的环 */
 .rod .knob{
   position:absolute; top:50%;
-  width:58px; height:58px;
-  margin-top:-29px;
-  border-radius:50%;
+  width:54px;
+  height:calc(var(--rod-h) + 12px);
+  margin-top:calc((var(--rod-h) + 12px) / -2);
+  border-radius:11px;
   background:
-    radial-gradient(circle at 32% 26%, rgba(255,255,250,.94), rgba(255,255,250,0) 52%),
-    radial-gradient(circle at 50% 54%, #F2E7CE 0%, #DCC9A2 58%, #A98C60 100%);
+    /* 车削纹：一圈圈浅浅的环 */
+    repeating-linear-gradient(180deg,
+      rgba(0,0,0,0) 0 5px,
+      rgba(0,0,0,.13) 5px 6px,
+      rgba(255,226,186,.06) 6px 7px,
+      rgba(0,0,0,0) 7px 12px),
+    linear-gradient(180deg,
+      rgba(0,0,0,.56) 0%,
+      rgba(255,214,170,.16) 15%,
+      rgba(255,240,214,.10) 32%,
+      rgba(0,0,0,.10) 58%,
+      rgba(0,0,0,.46) 84%,
+      rgba(0,0,0,.72) 100%),
+    url("assets/ui/rod_wood.jpg") center / auto 100% repeat-x;
+  filter:brightness(1.05) saturate(.86) sepia(.14);
   box-shadow:
-    0 0 0 2px rgba(201,162,39,.55),
-    0 0 0 4px rgba(20,10,4,.62),
-    0 6px 16px rgba(0,0,0,.72),
-    0 0 22px rgba(255,236,200,.18);
+    0 0 0 1px rgba(24,12,4,.66),
+    0 5px 14px rgba(0,0,0,.62),
+    inset 0 0 0 1px rgba(255,220,175,.07),
+    inset 0 0 14px rgba(22,10,4,.32);
 }
+/* 内侧一道车出来的凹槽：轴柄和轴身的分界 */
 .rod .knob::after{
   content:"";
-  position:absolute; inset:10px;
-  border-radius:50%;
-  border:1px solid rgba(140,104,52,.55);
-  box-shadow:0 1px 2px rgba(255,255,255,.55) inset;
-  box-shadow:0 0 8px rgba(201,162,39,.22) inset;
+  position:absolute; inset:0;
+  border-radius:inherit;
+  background:linear-gradient(90deg,
+    rgba(0,0,0,0) 0 63%,
+    rgba(0,0,0,.26) 69%,
+    rgba(255,220,175,.07) 73%,
+    rgba(0,0,0,.30) 78%,
+    rgba(0,0,0,0) 84%);
 }
-.rod .knob.l{ left:4px; filter:none; }
-.rod .knob.r{ right:4px; filter:none; }
-
-/* ---------------- 题签 ---------------- */
-
-.slip-title{
-  position:absolute;
-  left:max(84px, 3.4vw); top:calc(var(--rod-h) + 16px);
-  width:46px;
-  padding:14px 0 10px;
-  z-index:6;
-  display:flex; flex-direction:column; align-items:center; gap:10px;
-  border-radius:3px;
-  background:
-    linear-gradient(180deg, rgba(255,255,255,.5), rgba(0,0,0,.04)),
-    url("assets/ui/brocade_dark.jpg") center/cover,
-    linear-gradient(180deg, #F6EEDC, #E4D5B6);
-  box-shadow:
-    0 0 0 1px rgba(201,162,39,.55),
-    0 0 0 4px rgba(243,234,218,.10),
-    0 10px 26px rgba(0,0,0,.55);
-  transform:rotate(-.6deg);
-}
-.slip-title span{
-  writing-mode:vertical-rl;
-  font-size:20px;
-  letter-spacing:5px;
-  color:#2F2A22;
-  text-shadow:0 1px 0 rgba(255,255,255,.55);
-}
-.slip-title .seal{
-  width:22px; height:22px;
-  display:grid; place-items:center;
-  border-radius:2px;
-  background:#B23A2E;
-  color:#FBEFE6;
-  font-style:normal;
-  font-size:13px;
-  letter-spacing:0;
-  box-shadow:0 0 0 1px rgba(251,239,230,.35) inset;
-  opacity:.94;
-}
+.rod .knob.l{ left:5px; border-radius:13px 7px 7px 13px; }
+.rod .knob.r{ right:5px; border-radius:7px 13px 13px 7px; }
+.rod .knob.l::after{ transform:scaleX(-1); }
 
 /* ---------------- 左右交互按钮 ---------------- */
 
@@ -529,62 +569,183 @@ html,body{
 }
 .toast.show{ opacity:1; transform:translate(-50%, 0); }
 
-/* ---------------- 纹样寓意说明 ---------------- */
+/* ---------------- 纹样寓意说明 ----------------
+   形态：一条半透宣纸横卷，两端带木轴头。
+   　· 不糊成黑块 —— 透过毛玻璃能看见身后的人影，纸面才「浮」在画上
+   　· 压到贴近底部纹样条，像游戏字幕那样沉下去，不抢画面中心
+   ---------------------------------------------------------- */
 .lore{
-  position:absolute; left:50%; bottom:calc(var(--rod-h) + var(--card-h) + 44px);
-  transform:translate(-50%, 14px);
+  position:absolute; left:50%;
+  /* 实测：卡片是贴着纹样条格子的顶部排的，格子高 card-h+20、距底 rod-h+8，
+     所以卡片顶边 = rod-h + card-h + 28；再让 8px 呼吸，才是「贴着按钮上方」 */
+  bottom:calc(var(--rod-h) + var(--card-h) + 36px);
+  transform:translate(-50%, 12px);
   z-index:8;
-  width:min(92vw, 680px);
-  padding:13px 26px 15px;
-  border-radius:18px;
+  width:min(80vw, 452px);
+  padding:8px 12px 9px 22px;
+  border-radius:5px;
+  color:#3B3125;
+  /* 面板内部：正文占左，印章钉在右侧 */
+  display:flex; align-items:center; gap:13px;
   text-align:center;
-  color:#F2E7CE;
-  background: url("assets/ui/brocade_dark.jpg") center/200%, rgba(28,21,15,.80);
-  background-blend-mode:overlay;
-  backdrop-filter:blur(18px) saturate(140%);
-  -webkit-backdrop-filter:blur(18px) saturate(140%);
-  box-shadow:0 0 0 1px var(--gold-line), 0 16px 40px rgba(0,0,0,.5),
-             inset 0 1px 0 rgba(255,246,224,.14);
+  /* 旧宣纸：颜色压深、偏茶褐，不再是惨白的一张 */
+  background:
+    radial-gradient(118% 96% at 14% -20%, rgba(255,246,220,.52), rgba(255,246,220,0) 62%),
+    linear-gradient(180deg,
+      rgba(230,211,173,.92) 0%,
+      rgba(212,190,149,.86) 42%,
+      rgba(192,167,124,.82) 100%);
+  backdrop-filter:blur(7px) saturate(108%);
+  -webkit-backdrop-filter:blur(7px) saturate(108%);
+  box-shadow:
+    inset 0 0 0 1px rgba(255,244,220,.34),
+    0 0 0 1px rgba(128,88,42,.52),
+    0 0 0 4px rgba(150,108,54,.08),
+    inset 0 1px 0 rgba(255,250,236,.44),
+    inset 0 0 22px rgba(196,160,104,.26),
+    inset 0 -10px 18px rgba(126,90,46,.16),
+    0 2px 4px rgba(70,40,16,.14),
+    0 8px 18px rgba(58,28,12,.24);
   opacity:0;
   transition:opacity .5s ease, transform .5s ease;
   pointer-events:none;
 }
+/* 纸的粗糙感：feTurbulence 生成的细颗粒（不是规则网格），
+   再叠两笔极淡的水渍，压进纸里才像旧宣纸 */
+.lore::before{
+  content:'';
+  position:absolute; inset:0;
+  border-radius:inherit;
+  background-image:
+    url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%27140%27%20height%3D%27140%27%3E%3Cfilter%20id%3D%27g%27%20x%3D%270%27%20y%3D%270%27%20width%3D%27100%25%27%20height%3D%27100%25%27%3E%3CfeTurbulence%20type%3D%27fractalNoise%27%20baseFrequency%3D%270.86%27%20numOctaves%3D%274%27%20stitchTiles%3D%27stitch%27%2F%3E%3CfeColorMatrix%20type%3D%27saturate%27%20values%3D%270%27%2F%3E%3CfeComponentTransfer%3E%3CfeFuncR%20type%3D%27linear%27%20slope%3D%270.30%27%20intercept%3D%270.70%27%2F%3E%3CfeFuncG%20type%3D%27linear%27%20slope%3D%270.30%27%20intercept%3D%270.70%27%2F%3E%3CfeFuncB%20type%3D%27linear%27%20slope%3D%270.30%27%20intercept%3D%270.70%27%2F%3E%3C%2FfeComponentTransfer%3E%3C%2Ffilter%3E%3Crect%20width%3D%27140%27%20height%3D%27140%27%20filter%3D%27url%28%23g%29%27%2F%3E%3C%2Fsvg%3E"),
+    radial-gradient(20% 34% at 16% 78%, rgba(112,80,38,.13), rgba(112,80,38,0) 72%),
+    radial-gradient(16% 26% at 80% 18%, rgba(112,80,38,.11), rgba(112,80,38,0) 72%),
+    radial-gradient(10% 16% at 46% 92%, rgba(112,80,38,.10), rgba(112,80,38,0) 70%),
+    radial-gradient(6% 10%  at 64% 46%, rgba(112,80,38,.09), rgba(112,80,38,0) 70%);
+  background-size:140px 140px, auto, auto, auto, auto;
+  mix-blend-mode:multiply;
+  opacity:.9;
+  pointer-events:none;
+}
+/* 上缘一道极细的旧纸折痕，增加「卷」的实物感 */
+.lore::after{
+  content:'';
+  position:absolute; left:9%; right:9%; top:0;
+  height:1px;
+  background:linear-gradient(90deg,
+    rgba(158,116,58,0), rgba(158,116,58,.30), rgba(158,116,58,0));
+  pointer-events:none;
+}
 .lore.show{ opacity:1; transform:translate(-50%, 0); }
 
-.lore-name{
-  margin:0 0 5px;
-  font-family:var(--font-kai);
-  font-size:21px; letter-spacing:.28em; font-weight:600;
-  color:#F0CB74;
+/* 两端轴头：微微一露，交代「这是一卷纸」而不是一张卡片 */
+.lore-rod{
+  position:absolute; top:-6px; bottom:-6px;
+  width:9px;
+  border-radius:5px;
+  /* 深紫檀：高光收窄压暗，和上下老轴头同一语气 */
+  background:linear-gradient(90deg,
+    #3B2211 0%, #5A3720 24%, #7C5029 44%, #96683E 52%, #6A4324 70%, #4A2B16 88%, #341C0D 100%);
+  box-shadow:0 0 0 1px rgba(40,20,8,.62),
+             0 3px 8px rgba(30,14,4,.40),
+             inset 0 0 0 1px rgba(255,236,204,.08),
+             inset 0 0 6px rgba(34,16,6,.50);
+  pointer-events:none;
 }
+.lore-rod.l{ left:-7px; }
+.lore-rod.r{ right:-7px; }
+
+.lore-body{
+  position:relative;
+  flex:1 1 auto;
+  min-width:0;
+}
+
+.lore-name{
+  position:relative;
+  display:flex; align-items:center; justify-content:center; gap:9px;
+  margin:0 0 2px;
+  font-family:var(--font-kai);
+  font-size:16.5px; letter-spacing:.22em; font-weight:600;
+  color:#7E2A18;
+  text-shadow:0 1px 0 rgba(255,246,226,.55);
+}
+/* 标题两侧短金线：横卷的对位，别用满宽分割线 */
+.lore-name::before,
+.lore-name::after{
+  content:'';
+  flex:none;
+  width:20px; height:1px;
+  background:linear-gradient(90deg, rgba(154,58,36,0), rgba(154,58,36,.45));
+}
+.lore-name::after{ transform:scaleX(-1); }
+
 .lore-text{
+  position:relative;
   margin:0;
   font-family:var(--font-kai);
-  font-size:19px; line-height:1.72; letter-spacing:.03em;
-  color:#F5EBD6;
+  font-size:15.5px; line-height:1.62; letter-spacing:.01em;
+  color:#3A3024;
+  text-shadow:0 1px 0 rgba(255,246,226,.40);
   /* 中文按字换行即可；避免单个字孤零零地顶到下一行 */
   text-wrap:balance;
 }
 /* 「再念一遍」按钮：寓意卡默认不挡点按，但按钮本身要能点 */
+/* 「听一听」不再是一颗胶囊按钮，改成钤在纸尾的一枚黑红印章 */
 .lore-replay{
-  display:inline-block;
-  margin-top:10px;
-  padding:6px 16px;
-  border:1px solid rgba(201,162,39,.5);
-  border-radius:999px;
-  font-size:14px; letter-spacing:1px;
-  color:#F0CB74;
-  background:rgba(28,21,15,.55);
+  position:relative;
+  flex:none;
+  width:36px; height:62px;
+  display:flex; align-items:center; justify-content:center;
+  writing-mode:vertical-rl;
+  text-orientation:upright;
+  font-family:var(--font-kai);
+  font-size:14px; letter-spacing:3px; font-weight:600;
+  color:#F0DCC2;
+  /* 陈年印泥：红里透黑，不是鲜红 */
+  background:
+    radial-gradient(120% 70% at 30% 4%, rgba(226,150,110,.14), rgba(226,150,110,0) 60%),
+    radial-gradient(110% 80% at 78% 100%, rgba(0,0,0,.42), rgba(0,0,0,0) 66%),
+    linear-gradient(158deg, #6B1710 0%, #470D07 46%, #260504 100%);
+  border:none;
+  border-radius:2px;
+  box-shadow:
+    0 0 0 1px rgba(232,214,184,.20) inset,
+    0 0 0 2px rgba(24,6,3,.55),
+    0 2px 5px rgba(34,10,4,.50);
+  text-shadow:0 0 1px rgba(38,8,4,.85), 0 1px 0 rgba(255,220,190,.10);
+  transform:rotate(-1.2deg);
   pointer-events:auto;
   cursor:pointer;
-  transition:background .2s ease, color .2s ease;
+  transition:transform .16s ease, filter .2s ease;
 }
-.lore-replay:active{ background:rgba(201,162,39,.22); }
+/* 印泥盖不匀的地方：几处露白，才像真盖上去的 */
+.lore-replay::after{
+  content:"";
+  position:absolute; inset:0;
+  border-radius:inherit;
+  background-image:
+    radial-gradient(22% 14% at 26% 16%, rgba(255,226,194,.13), rgba(255,226,194,0) 72%),
+    radial-gradient(14% 9%  at 72% 50%, rgba(255,226,194,.09), rgba(255,226,194,0) 72%),
+    radial-gradient(11% 7%  at 40% 82%, rgba(255,226,194,.10), rgba(255,226,194,0) 72%),
+    radial-gradient(9% 6%   at 64% 94%, rgba(255,226,194,.08), rgba(255,226,194,0) 72%);
+  mix-blend-mode:screen;
+  pointer-events:none;
+}
+.lore-replay:hover{ filter:brightness(1.16); transform:translateY(-1px) rotate(-1.2deg); }
+.lore-replay:active{ transform:rotate(-1.2deg) scale(.96); }
 
 @media (max-width:600px){
-  .lore{ padding:12px 18px 14px; }
-  .lore-name{ font-size:18px; }
-  .lore-text{ font-size:16.5px; }
+  .lore{ width:min(82vw, 348px); padding:7px 14px 8px 15px; gap:9px; }
+  .lore-replay{ width:30px; height:56px; font-size:11.5px; letter-spacing:2.2px; }
+  /* 窄屏时左右按钮要给字幕让位：面板上移不了，就把按钮抬高一点 */
+  .side{ top:56%; }
+  .lore-name{ font-size:15px; gap:6px; letter-spacing:.18em; }
+  .lore-name::before, .lore-name::after{ width:15px; }
+  .lore-text{ font-size:14.5px; line-height:1.58; }
+  .lore-rod{ top:-4px; bottom:-4px; width:7px; }
+  .lore-rod.l{ left:-6px; }
+  .lore-rod.r{ right:-6px; }
 }
 
 .flash{
@@ -688,8 +849,6 @@ html,body{
   .card .nm{ font-size:12.5px; }
   .orb{ width:54px; height:54px; font-size:16px; }
   .orb.shot{ width:62px; height:62px; font-size:18px; }
-  .slip-title{ width:38px; left:64px; }
-  .slip-title span{ font-size:16px; letter-spacing:4px; }
   .meter{ right:78px; }
   .meter-panel{ width:210px; }
   .toast{ bottom:calc(var(--rod-h) + 148px); }

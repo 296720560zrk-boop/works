@@ -5,3 +5,8 @@ _lab/
 Thumbs.db
 .DS_Store
 node_modules/
+
+# 本机专有，绝不上传
+.github-token
+_github/
+_tools/

@@ -17,21 +17,18 @@
     <canvas id="fx"></canvas>
   </div>
 
-  <!-- 上卷轴 -->
-  <div class="rod rod-t" aria-hidden="true">
+  <!-- 上卷轴：轴身上阴刻标题 -->
+  <div class="rod rod-t">
     <i class="knob l"></i><i class="knob r"></i>
+    <i class="patina"></i>
+    <h1 class="rod-title">宋锦小灵兽</h1>
     <i class="edge"></i>
   </div>
   <!-- 下卷轴 -->
   <div class="rod rod-b" aria-hidden="true">
     <i class="knob l"></i><i class="knob r"></i>
+    <i class="patina"></i>
     <i class="edge"></i>
-  </div>
-
-  <!-- 题签 -->
-  <div class="slip-title" aria-hidden="true">
-    <span>宋锦小灵兽</span>
-    <i class="seal">锦</i>
   </div>
 
   <!-- 左侧交互 -->
@@ -55,9 +52,13 @@
 
   <!-- 纹样寓意说明：小灵兽出来后浮现，几秒后淡去 -->
   <div class="lore" id="lore" hidden>
-    <p class="lore-name" id="loreName"></p>
-    <p class="lore-text" id="loreText"></p>
-    <button class="lore-replay" id="loreReplay" type="button">🔊 听一听</button>
+    <i class="lore-rod l" aria-hidden="true"></i>
+    <i class="lore-rod r" aria-hidden="true"></i>
+    <div class="lore-body">
+      <p class="lore-name" id="loreName"></p>
+      <p class="lore-text" id="loreText"></p>
+    </div>
+    <button class="lore-replay" id="loreReplay" type="button" aria-label="再念一遍">听一听</button>
   </div>
 
   <!-- 用量条：只显示「使用时长」，点开可锁课时 / 导出记录。

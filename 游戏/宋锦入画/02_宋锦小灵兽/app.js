@@ -140,7 +140,8 @@ let loreAudio = null;      // 当前寓意音频
 let lorePlaying = false;   // 是否正在播
 
 function setReplayLabel() {
-  loreReplayEl.textContent = lorePlaying ? '⏸ 暂停' : '🔊 听一听';
+  /* 印章里放不下图标：只留两个字，播的时候换成「暂停」 */
+  loreReplayEl.textContent = lorePlaying ? '暂停' : '听一听';
 }
 
 function playLore(beast) {
