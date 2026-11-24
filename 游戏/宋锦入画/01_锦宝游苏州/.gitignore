@@ -10,3 +10,6 @@ node_modules/
 .github-token
 .wbapp_*
 _tools/
+
+# 早期 AI 草稿图（未被代码引用，仅本地留存）
+assets/outfit_new/
